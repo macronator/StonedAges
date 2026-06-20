@@ -13440,6 +13440,13 @@ public class GameState : IGameObject
         s._lastSuccess = DateTime.UtcNow;
     }
 
+    /// <summary>
+    ///     Executes action <paramref name="s"/> (emotes / utility). After the rate-limit, cooldown,
+    ///     dead/ghost and stealth checks it plays the action's body/sound/animation, then handles the few
+    ///     special actions: "look" (who is on the tile in front), "study creature" (reveal a monster's
+    ///     level/exp), and "unlock" (a level-scaled chance to open a locked monster, which may spring a
+    ///     Mimic). Finally starts the cooldown.
+    /// </summary>
     private void UseScript(Action s)
     {
         if (DateTime.UtcNow.Subtract(s._lastUse).TotalMilliseconds < 333.0)
@@ -13480,111 +13487,114 @@ public class GameState : IGameObject
         {
             SpellAnimation(_player, s._fromani, s._fromanispeed);
         }
+        // Action "look": list the (non-hidden) entities on the tile in front, in the sense window.
         if (s._name.Equals("look", StringComparison.CurrentCultureIgnoreCase))
         {
-            string text = _map._number + " - " + _map._name + "\n ";
-            Tile tile = TileImFacing();
-            if (tile != null)
+            string lookText = _map._number + " - " + _map._name + "\n ";
+            Tile facingTile = TileImFacing();
+            if (facingTile != null)
             {
-                foreach (Entity item in tile._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
+                foreach (Entity entity in facingTile._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
                 {
-                    if (!item.Hidden)
+                    if (!entity.Hidden)
                     {
-                        text = text + "\n" + item._name;
+                        lookText = lookText + "\n" + entity._name;
                     }
                 }
             }
-            _senseMenu._labels["senseLabel"].ChangeText(text);
+            _senseMenu._labels["senseLabel"].ChangeText(lookText);
             _viewingSense = true;
         }
+        // Action "study creature": reveal a monster's level / exp.
         else if (s._name.Equals("study creature", StringComparison.CurrentCultureIgnoreCase))
         {
-            Tile tile2 = TileImFacing();
-            if (tile2 != null)
+            Tile facingTile = TileImFacing();
+            if (facingTile != null)
             {
-                foreach (Entity item2 in tile2._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
+                foreach (Entity entity in facingTile._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
                 {
-                    if (item2 is Monster)
+                    if (entity is Monster)
                     {
-                        item2._showInfo = true;
-                        SystemMsg("Creature: " + item2._name + " - LEV: " + item2._lev + " - EXP: " + item2._exp.ToString(), 3);
+                        entity._showInfo = true;
+                        SystemMsg("Creature: " + entity._name + " - LEV: " + entity._lev + " - EXP: " + entity._exp.ToString(), 3);
                     }
                 }
             }
         }
+        // Action "unlock": level-scaled chance to open a locked monster; rarely springs a Mimic.
         else if (s._name.Equals("unlock", StringComparison.CurrentCultureIgnoreCase))
         {
-            Tile tile3 = TileImFacing();
-            if (tile3 != null)
+            Tile facingTile = TileImFacing();
+            if (facingTile != null)
             {
-                foreach (Entity item3 in tile3._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
+                foreach (Entity entity in facingTile._entities.Values.OrderByDescending((Entity z) => z.CreateTime))
                 {
-                    if (!(item3 is Monster) || item3._unlock <= 0)
+                    if (!(entity is Monster) || entity._unlock <= 0)
                     {
                         continue;
                     }
-                    bool flag = false;
-                    int num = rand.Next(0, 101);
-                    int num2 = 90;
-                    if (item3._lev == 10)
+                    bool unlocked = false;
+                    int unlockRoll = rand.Next(0, 101);
+                    int successThreshold = 90;
+                    if (entity._lev == 10)
                     {
-                        num2 = 90;
-                        if (num <= num2)
+                        successThreshold = 90;
+                        if (unlockRoll <= successThreshold)
                         {
-                            flag = true;
+                            unlocked = true;
                         }
                     }
-                    else if (item3._lev == 20)
+                    else if (entity._lev == 20)
                     {
-                        num2 = 80;
-                        if (num <= num2)
+                        successThreshold = 80;
+                        if (unlockRoll <= successThreshold)
                         {
-                            flag = true;
+                            unlocked = true;
                         }
                     }
-                    else if (item3._lev == 30)
+                    else if (entity._lev == 30)
                     {
-                        num2 = 70;
-                        if (num <= num2)
+                        successThreshold = 70;
+                        if (unlockRoll <= successThreshold)
                         {
-                            flag = true;
+                            unlocked = true;
                         }
                     }
-                    else if (item3._lev == 40)
+                    else if (entity._lev == 40)
                     {
-                        num2 = 60;
-                        if (num <= num2)
+                        successThreshold = 60;
+                        if (unlockRoll <= successThreshold)
                         {
-                            flag = true;
+                            unlocked = true;
                         }
                     }
-                    else if (item3._lev == 50)
+                    else if (entity._lev == 50)
                     {
-                        num2 = 50;
-                        if (num <= num2)
+                        successThreshold = 50;
+                        if (unlockRoll <= successThreshold)
                         {
-                            flag = true;
+                            unlocked = true;
                         }
                     }
-                    if (flag)
+                    if (unlocked)
                     {
                         UseCountAndLevelUp(s);
-                        bool flag2 = false;
-                        int num3 = rand.Next(0, 101);
-                        if (num3 <= 1)
+                        bool spawnMimic = false;
+                        int mimicRoll = rand.Next(0, 101);
+                        if (mimicRoll <= 1)
                         {
-                            flag2 = true;
+                            spawnMimic = true;
                         }
-                        if (flag2)
+                        if (spawnMimic)
                         {
-                            (item3 as Monster)._deathDelay = 100.0;
-                            item3._dead = true;
-                            SpawnMonster("Mimic", item3._location, "new", 1);
+                            (entity as Monster)._deathDelay = 100.0;
+                            entity._dead = true;
+                            SpawnMonster("Mimic", entity._location, "new", 1);
                             continue;
                         }
-                        (item3 as Monster)._deathDelay = 100.0;
-                        item3._dead = true;
-                        if (item3._lev == 10)
+                        (entity as Monster)._deathDelay = 100.0;
+                        entity._dead = true;
+                        if (entity._lev == 10)
                         {
                             GainExp(5000u);
                         }
@@ -13592,12 +13602,12 @@ public class GameState : IGameObject
                     else
                     {
                         SystemMsg("Failed.", 3);
-                        item3._unlock--;
-                        if (item3._unlock == 0)
+                        entity._unlock--;
+                        if (entity._unlock == 0)
                         {
-                            SpellAnimation(item3, 142, 100);
-                            (item3 as Monster)._deathDelay = 1000.0;
-                            item3._dead = true;
+                            SpellAnimation(entity, 142, 100);
+                            (entity as Monster)._deathDelay = 1000.0;
+                            entity._dead = true;
                         }
                     }
                 }
