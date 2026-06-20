@@ -18758,76 +18758,77 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Builds and sends the local player's profile packet — name/nation/title/rank/level/guild + equipment + legend marks — tracking the running packet byte length.</summary>
     public void SendProfileData()
     {
         DisplayProfileS profile = default(DisplayProfileS);
-        ushort num = 0;
+        ushort packetLen = 0;
         profile.ID = _player._id;
-        num += 4;
+        packetLen += 4;
         profile.Name = _player._name;
-        num++;
-        num += (ushort)_player._name.Length;
+        packetLen++;
+        packetLen += (ushort)_player._name.Length;
         profile.Nation = _player._nation;
-        num++;
+        packetLen++;
         profile.Title = _player._title;
-        num++;
-        num += (ushort)_player._title.Length;
+        packetLen++;
+        packetLen += (ushort)_player._title.Length;
         profile.AllowGroup = Convert.ToByte(_allowGrouping);
-        num++;
+        packetLen++;
         profile.GroupList = new List<GroupMemberS>();
-        num++;
+        packetLen++;
         profile.Rank = _player._rank;
-        num++;
-        num += (ushort)_player._rank.Length;
+        packetLen++;
+        packetLen += (ushort)_player._rank.Length;
         if (_player._master)
         {
             profile.Level = "Master";
-            num++;
-            num += 6;
+            packetLen++;
+            packetLen += 6;
         }
         else
         {
             profile.Level = _player._lev.ToString();
-            num++;
-            num += (ushort)_player._lev.ToString().Length;
+            packetLen++;
+            packetLen += (ushort)_player._lev.ToString().Length;
         }
         profile.Guild = _player._guild;
-        num++;
-        num += (ushort)_player._guild.Length;
+        packetLen++;
+        packetLen += (ushort)_player._guild.Length;
         profile.Equip = new List<EquippedS>();
-        num += 2;
-        foreach (InventoryItem item3 in _equipment)
+        packetLen += 2;
+        foreach (InventoryItem equipItem in _equipment)
         {
-            EquippedS item = default(EquippedS);
-            item.Slot = (byte)item3._slot;
-            num++;
-            item.Color = (byte)item3._bodyImgColor;
-            num++;
-            item.Name = item3._name;
-            num++;
-            num += (ushort)item3._name.Length;
-            item.Dura = (uint)item3._durability;
-            num += 4;
-            profile.Equip.Add(item);
+            EquippedS equippedEntry = default(EquippedS);
+            equippedEntry.Slot = (byte)equipItem._slot;
+            packetLen++;
+            equippedEntry.Color = (byte)equipItem._bodyImgColor;
+            packetLen++;
+            equippedEntry.Name = equipItem._name;
+            packetLen++;
+            packetLen += (ushort)equipItem._name.Length;
+            equippedEntry.Dura = (uint)equipItem._durability;
+            packetLen += 4;
+            profile.Equip.Add(equippedEntry);
         }
         profile.Legend = new List<LegendMarkS>();
-        num += 2;
+        packetLen += 2;
         foreach (LegendMark legendMark in _player._legendMarks)
         {
-            LegendMarkS item2 = default(LegendMarkS);
-            item2.Color = (byte)legendMark._color;
-            num++;
-            item2.Icon = (byte)legendMark._icon;
-            num++;
-            item2.ID = legendMark._id;
-            num++;
-            num += (ushort)legendMark._id.Length;
-            item2.Text = legendMark._text;
-            num++;
-            num += (ushort)legendMark._text.Length;
-            profile.Legend.Add(item2);
+            LegendMarkS legendEntry = default(LegendMarkS);
+            legendEntry.Color = (byte)legendMark._color;
+            packetLen++;
+            legendEntry.Icon = (byte)legendMark._icon;
+            packetLen++;
+            legendEntry.ID = legendMark._id;
+            packetLen++;
+            packetLen += (ushort)legendMark._id.Length;
+            legendEntry.Text = legendMark._text;
+            packetLen++;
+            packetLen += (ushort)legendMark._text.Length;
+            profile.Legend.Add(legendEntry);
         }
-        DisplayProfilePacket displayProfilePacket = new DisplayProfilePacket(profile, num);
+        DisplayProfilePacket displayProfilePacket = new DisplayProfilePacket(profile, packetLen);
         GameWindow.ClientSocket.Send(displayProfilePacket.Data);
     }
 
@@ -19413,6 +19414,7 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Removes entity/player <paramref name="id"/> from the map, its tile, and the player list (server says they left view).</summary>
     public void RemoveEntityP(uint id)
     {
         if (Player.List.ContainsKey(id))
@@ -19659,137 +19661,140 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Builds and sends the local player's appearance packet — position, monster form, every body/equipment sprite id+color+source, name/gender/hidden — tracking the packet byte length.</summary>
     public void SendDisplayPlayer()
     {
         if (GameWindow.ConnectedToServer)
         {
             DisplayPlayerS player = default(DisplayPlayerS);
-            ushort num = 0;
+            ushort packetLen = 0;
             player.X = (byte)_player._location.X;
-            num++;
+            packetLen++;
             player.Y = (byte)_player._location.Y;
-            num++;
+            packetLen++;
             player.Direction = (byte)_player._body._direction;
-            num++;
+            packetLen++;
             player.ID = _player._id;
-            num += 4;
+            packetLen += 4;
             player.Form = (ushort)_player._monsterForm;
-            num += 2;
+            packetLen += 2;
             if (_player.Ghost || _player._body._helmType == 0)
             {
                 player.Head = (ushort)_player._body._hairType;
-                num += 2;
+                packetLen += 2;
                 player.HeadColor = (byte)_player._body._hairColor;
-                num++;
+                packetLen++;
             }
             else
             {
                 player.Head = (ushort)_player._body._helmType;
-                num += 2;
+                packetLen += 2;
                 player.HeadColor = (byte)_player._body._helmColor;
-                num++;
+                packetLen++;
             }
             player.HeadSource = ((_player._body._bodySource["h"] == "new") ? ((byte)2) : ((_player._body._bodySource["h"] == "myda") ? ((byte)1) : ((byte)0)));
-            num++;
+            packetLen++;
             player.Body = (ushort)_player._body._bodyImgs["b"];
-            num += 2;
+            packetLen += 2;
             player.Arms = (ushort)_player._body._bodyImgs["a"];
-            num += 2;
+            packetLen += 2;
             player.Boots = (byte)_player._body._bodyImgs["l"];
-            num++;
+            packetLen++;
             player.BootColor = (byte)_player._body._bodyColors["l"];
-            num++;
+            packetLen++;
             player.BootSource = ((_player._body._bodySource["l"] == "new") ? ((byte)2) : ((_player._body._bodySource["l"] == "myda") ? ((byte)1) : ((byte)0)));
-            num++;
+            packetLen++;
             player.Armor = (ushort)_player._body._bodyImgs["u"];
-            num += 2;
+            packetLen += 2;
             player.ArmorColor = (byte)_player._body._bodyColors["u"];
-            num++;
+            packetLen++;
             player.ArmorSource = ((_player._body._bodySource["u"] == "new") ? ((byte)2) : ((_player._body._bodySource["u"] == "myda") ? ((byte)1) : ((byte)0)));
-            num++;
+            packetLen++;
             player.Shield = (byte)_player._body._bodyImgs["s"];
-            num++;
+            packetLen++;
             player.ShieldSource = ((_player._body._bodySource["s"] == "new") ? ((byte)2) : ((_player._body._bodySource["s"] == "myda") ? ((byte)1) : ((byte)0)));
-            num++;
+            packetLen++;
             player.Weapon = (ushort)_player._body._bodyImgs["w"];
-            num += 2;
+            packetLen += 2;
             player.WeaponSource = ((_player._body._bodySource["w"] == "new") ? ((byte)2) : ((_player._body._bodySource["w"] == "myda") ? ((byte)1) : ((byte)0)));
-            num++;
+            packetLen++;
             player.Acc = (ushort)_player._body._bodyImgs["c"];
-            num += 2;
+            packetLen += 2;
             player.AccColor = (byte)_player._body._bodyColors["c"];
-            num++;
+            packetLen++;
             player.Hidden = _player.Hidden;
-            num++;
+            packetLen++;
             player.NameTagType = 0;
-            num++;
+            packetLen++;
             player.Gender = (byte)_player._gender;
-            num++;
-            num++;
+            packetLen++;
+            packetLen++;
             player.Name = _player._name;
-            num += (ushort)_player._name.Length;
-            DisplayPlayerPacket displayPlayerPacket = new DisplayPlayerPacket(player, num);
+            packetLen += (ushort)_player._name.Length;
+            DisplayPlayerPacket displayPlayerPacket = new DisplayPlayerPacket(player, packetLen);
             GameWindow.ClientSocket.Send(displayPlayerPacket.Data);
         }
     }
 
+    /// <summary>Sends a board request — type 2 = list a board's posts, 3 = view a post (with navigation), 5 = a board action — for <paramref name="boardID"/>.</summary>
     public void RequestBoard(ushort boardID, byte type = 2, ushort postnum = 0, byte navigation = 0)
     {
         ushort lastPostNumber = 0;
         RequestBoardS board = default(RequestBoardS);
-        ushort num = 0;
+        ushort packetLen = 0;
         board.Type = type;
-        num++;
+        packetLen++;
         if (board.Type == 2)
         {
             board.BoardID = boardID;
-            num += 2;
+            packetLen += 2;
             board.LastPostNumber = lastPostNumber;
-            num += 2;
+            packetLen += 2;
         }
         else if (board.Type == 3)
         {
             board.BoardID = boardID;
-            num += 2;
+            packetLen += 2;
             board.PostNumber = postnum;
-            num += 2;
+            packetLen += 2;
             board.Navigation = navigation;
-            num++;
+            packetLen++;
         }
         else if (board.Type == 5)
         {
             board.BoardID = boardID;
-            num += 2;
+            packetLen += 2;
             board.PostNumber = postnum;
-            num += 2;
+            packetLen += 2;
         }
         if (GameWindow.ConnectedToServer)
         {
-            RequestBoardPacket requestBoardPacket = new RequestBoardPacket(board, num);
+            RequestBoardPacket requestBoardPacket = new RequestBoardPacket(board, packetLen);
             GameWindow.ClientSocket.Send(requestBoardPacket.Data);
         }
     }
 
+    /// <summary>Sends a new board post (type 6) to <paramref name="boardID"/> with the given poster name/title/body.</summary>
     public void SendNewPost(ushort boardID, string name, string title, string body)
     {
         RequestBoardS board = default(RequestBoardS);
-        ushort num = 0;
+        ushort packetLen = 0;
         board.Type = 6;
-        num++;
+        packetLen++;
         board.BoardID = boardID;
-        num += 2;
+        packetLen += 2;
         board.PosterName = name;
-        num++;
-        num += (ushort)name.Length;
+        packetLen++;
+        packetLen += (ushort)name.Length;
         board.PostTitle = title;
-        num++;
-        num += (ushort)title.Length;
+        packetLen++;
+        packetLen += (ushort)title.Length;
         board.PostBody = body;
-        num += 2;
-        num += (ushort)body.Length;
+        packetLen += 2;
+        packetLen += (ushort)body.Length;
         if (GameWindow.ConnectedToServer)
         {
-            RequestBoardPacket requestBoardPacket = new RequestBoardPacket(board, num);
+            RequestBoardPacket requestBoardPacket = new RequestBoardPacket(board, packetLen);
             GameWindow.ClientSocket.Send(requestBoardPacket.Data);
         }
     }
