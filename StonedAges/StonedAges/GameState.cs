@@ -18950,6 +18950,7 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Plays a spell's cast animation on the caster (FromID) and its impact animation on the target (ToID), each only if in view.</summary>
     public void SpellAnimationP(SpellAniS spellAni)
     {
         try
@@ -18960,13 +18961,13 @@ public class GameState : IGameObject
                 uint fromID = spellAni.FromID;
                 if (_map._entities.ContainsKey(fromID))
                 {
-                    Entity entity = _map._entities[fromID];
-                    entity._body.SpellAni(spellAni.FromAni, spellAni.Delay);
+                    Entity fromEntity = _map._entities[fromID];
+                    fromEntity._body.SpellAni(spellAni.FromAni, spellAni.Delay);
                 }
                 if (_map._entities.ContainsKey(toID))
                 {
-                    Entity entity2 = _map._entities[toID];
-                    entity2._body.SpellAni(spellAni.ToAni, spellAni.Delay);
+                    Entity toEntity = _map._entities[toID];
+                    toEntity._body.SpellAni(spellAni.ToAni, spellAni.Delay);
                 }
             }
         }
@@ -18975,6 +18976,7 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Plays an emote or attack animation on player <paramref name="id"/> (types 3/4 = attack, else emote); ignored if they are already emoting/attacking.</summary>
     public void EmoteP(uint id, byte aniType, ushort aniDelay)
     {
         if (!Player.List.ContainsKey(id) || Player.List[id]._body._emoting || Player.List[id]._body._attacking)
@@ -18999,6 +19001,7 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>Plays a body/attack animation on player <paramref name="id"/> (unless already attacking).</summary>
     public void BodyMoveP(uint id, byte aniType, ushort aniDelay)
     {
         if (Player.List.ContainsKey(id) && !Player.List[id]._body._attacking)
