@@ -3563,20 +3563,28 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>
+    ///     Draws one frame: clears the screen, then either the world map or the in-game world (map,
+    ///     weather, HUD menus, orbs, the active side panel, and per-entity name tags / health bars /
+    ///     chat bubbles) plus any open floating windows (profile, legend, board, tooltips, prompts),
+    ///     and finally the cursor.
+    /// </summary>
     public void Render(double elapsedTime)
     {
         Gl.glClearColor(0f, 0f, 0f, 1f);
-        Gl.glClear(16384);
+        Gl.glClear(Gl.GL_COLOR_BUFFER_BIT);
+        // --- World-map screen vs. the in-game world ---
         if (_worldMap)
         {
             _renderer.DrawSprite(_worldMapSprite, 0);
-            foreach (Town value in Town._List.Values)
+            foreach (Town town in Town._List.Values)
             {
-                value.Render(_renderer);
+                town.Render(_renderer);
             }
         }
         else
         {
+            // The game world, weather, and the HUD menus / orbs / spell bar.
             _map.Render(_renderer, elapsedTime);
             if (_enableWeather && !_initPlayer)
             {
@@ -3593,13 +3601,14 @@ public class GameState : IGameObject
             if (_player._spellBar.Count > 0)
             {
                 _renderer.DrawSprite(_spellBarBack, 0);
-                foreach (SpellBar value2 in _player._spellBar.Values)
+                foreach (SpellBar spellBar in _player._spellBar.Values)
                 {
-                    value2.Render(_renderer);
+                    spellBar.Render(_renderer);
                 }
             }
             _renderer.DrawSprite(_healthOrb, 0);
             _renderer.DrawSprite(_manaOrb, 0);
+            // Active side panel (0=inventory, 1/6=skills, 2/7=spells, 3=chat, 4=stats, 5/10=actions, 8=info).
             if (_panelNum == 0)
             {
                 if (_miscMenu._buttons["fullInvBtn"].Selected)
@@ -3751,43 +3760,45 @@ public class GameState : IGameObject
                 _renderer.DrawSprite(_blackScreen, 0);
                 _renderer.DrawSprite(_blindedSprite, 0);
             }
-            foreach (Entity item in from z in _map._entities.Values.ToArray()
+            // Per-entity overlays: name tags, health bars, and chat bubbles.
+            foreach (Entity entity in from z in _map._entities.Values.ToArray()
                                     orderby z.speakTime
                                     select z)
             {
-                if (item._displayTag != 0 && (item is NPC || item is Player))
+                if (entity._displayTag != 0 && (entity is NPC || entity is Player))
                 {
-                    _renderer.DrawText(item._nameTag, shade: true);
+                    _renderer.DrawText(entity._nameTag, shade: true);
                 }
-                item.DrawHealthBar(_renderer);
-                if (item._chatText._text != "")
+                entity.DrawHealthBar(_renderer);
+                if (entity._chatText._text != "")
                 {
-                    int num = item._chatText._lines * 12;
-                    Vector vector = new Vector(item._chatBubbleBack.GetPosition().X, item._chatBubbleBack.GetPosition().Y, 0.0);
-                    _renderer.DrawBorder(new Rectangle((int)vector.X, (int)vector.Y, (int)item._chatBubbleBack.GetWidth(), (int)item._chatBubbleBack.GetHeight()), Engine.Color.White, ignorebottommid: true);
-                    _renderer.DrawPixel(vector.X + 58.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 59.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 60.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 61.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 62.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 63.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 64.0, vector.Y + (double)num + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 60.0, vector.Y + (double)num + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 61.0, vector.Y + (double)num + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 62.0, vector.Y + (double)num + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 61.0, vector.Y + (double)num + 8.0, new Engine.Color(0f, 0f, 0f, 0.5f));
-                    _renderer.DrawPixel(vector.X + 58.0, vector.Y + (double)num + 7.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 59.0, vector.Y + (double)num + 7.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 60.0, vector.Y + (double)num + 8.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 61.0, vector.Y + (double)num + 9.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 61.0, vector.Y + (double)num + 10.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 62.0, vector.Y + (double)num + 8.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 63.0, vector.Y + (double)num + 7.0, Engine.Color.White);
-                    _renderer.DrawPixel(vector.X + 64.0, vector.Y + (double)num + 7.0, Engine.Color.White);
-                    _renderer.DrawSprite(item._chatBubbleBack, 0);
-                    _renderer.DrawText(item._chatText);
+                    int bubbleHeight = entity._chatText._lines * 12;
+                    Vector bubblePos = new Vector(entity._chatBubbleBack.GetPosition().X, entity._chatBubbleBack.GetPosition().Y, 0.0);
+                    _renderer.DrawBorder(new Rectangle((int)bubblePos.X, (int)bubblePos.Y, (int)entity._chatBubbleBack.GetWidth(), (int)entity._chatBubbleBack.GetHeight()), Engine.Color.White, ignorebottommid: true);
+                    _renderer.DrawPixel(bubblePos.X + 58.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 59.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 60.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 61.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 62.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 63.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 64.0, bubblePos.Y + (double)bubbleHeight + 6.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 60.0, bubblePos.Y + (double)bubbleHeight + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 61.0, bubblePos.Y + (double)bubbleHeight + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 62.0, bubblePos.Y + (double)bubbleHeight + 7.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 61.0, bubblePos.Y + (double)bubbleHeight + 8.0, new Engine.Color(0f, 0f, 0f, 0.5f));
+                    _renderer.DrawPixel(bubblePos.X + 58.0, bubblePos.Y + (double)bubbleHeight + 7.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 59.0, bubblePos.Y + (double)bubbleHeight + 7.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 60.0, bubblePos.Y + (double)bubbleHeight + 8.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 61.0, bubblePos.Y + (double)bubbleHeight + 9.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 61.0, bubblePos.Y + (double)bubbleHeight + 10.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 62.0, bubblePos.Y + (double)bubbleHeight + 8.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 63.0, bubblePos.Y + (double)bubbleHeight + 7.0, Engine.Color.White);
+                    _renderer.DrawPixel(bubblePos.X + 64.0, bubblePos.Y + (double)bubbleHeight + 7.0, Engine.Color.White);
+                    _renderer.DrawSprite(entity._chatBubbleBack, 0);
+                    _renderer.DrawText(entity._chatText);
                 }
             }
+            // Floating windows: drag icon, profiles, legends, menus, tooltips, prompts.
             if (_dragIcon._clicked && !_infoBarMenu._buttons["sysmsgBtn"].Held)
             {
                 _dragIcon.Render(_renderer);
@@ -3797,10 +3808,10 @@ public class GameState : IGameObject
                 _othersProfileMenu.Render(_renderer);
                 if (_profilePlayer != null)
                 {
-                    foreach (Equipment item2 in _profilePlayer._equipment)
+                    foreach (Equipment equipItem in _profilePlayer._equipment)
                     {
-                        item2._image.SetPosition(_othersProfileMenu._background.GetPosition().X + item2._image._windowOffset.X, _othersProfileMenu._background.GetPosition().Y + item2._image._windowOffset.Y);
-                        _renderer.DrawSprite(item2._image, 0);
+                        equipItem._image.SetPosition(_othersProfileMenu._background.GetPosition().X + equipItem._image._windowOffset.X, _othersProfileMenu._background.GetPosition().Y + equipItem._image._windowOffset.Y);
+                        _renderer.DrawSprite(equipItem._image, 0);
                     }
                 }
             }
@@ -3809,20 +3820,20 @@ public class GameState : IGameObject
                 _othersLegendMenu.Render(_renderer);
                 if (_profilePlayer != null)
                 {
-                    int num2 = 0;
-                    int num3 = 0;
+                    int othLegendShown = 0;
+                    int othLegendCount = 0;
                     foreach (LegendMark legendMark in _profilePlayer._legendMarks)
                     {
-                        num3++;
-                        if (num3 > _othersLegendIndex)
+                        othLegendCount++;
+                        if (othLegendCount > _othersLegendIndex)
                         {
-                            num2++;
-                            if (num2 > 14)
+                            othLegendShown++;
+                            if (othLegendShown > 14)
                             {
                                 break;
                             }
-                            legendMark._image.SetPosition(_othersLegendMenu._background.GetPosition().X + 30.0, _othersLegendMenu._background.GetPosition().Y + 43.0 + (double)(num2 * 21));
-                            legendMark._textObj.SetPosition(_othersLegendMenu._background.GetPosition().X + 60.0, _othersLegendMenu._background.GetPosition().Y + 47.0 + (double)(num2 * 21));
+                            legendMark._image.SetPosition(_othersLegendMenu._background.GetPosition().X + 30.0, _othersLegendMenu._background.GetPosition().Y + 43.0 + (double)(othLegendShown * 21));
+                            legendMark._textObj.SetPosition(_othersLegendMenu._background.GetPosition().X + 60.0, _othersLegendMenu._background.GetPosition().Y + 47.0 + (double)(othLegendShown * 21));
                             _renderer.DrawSprite(legendMark._image, 0);
                             _renderer.DrawText(legendMark._textObj);
                         }
@@ -3846,20 +3857,20 @@ public class GameState : IGameObject
             if (_viewingLegend)
             {
                 _legendMenu.Render(_renderer);
-                int num4 = 0;
-                int num5 = 0;
+                int legendShown = 0;
+                int legendCount = 0;
                 foreach (LegendMark legendMark2 in _player._legendMarks)
                 {
-                    num5++;
-                    if (num5 > _legendIndex)
+                    legendCount++;
+                    if (legendCount > _legendIndex)
                     {
-                        num4++;
-                        if (num4 > 14)
+                        legendShown++;
+                        if (legendShown > 14)
                         {
                             break;
                         }
-                        legendMark2._image.SetPosition(_legendMenu._background.GetPosition().X + 30.0, _legendMenu._background.GetPosition().Y + 43.0 + (double)(num4 * 21));
-                        legendMark2._textObj.SetPosition(_legendMenu._background.GetPosition().X + 60.0, _legendMenu._background.GetPosition().Y + 47.0 + (double)(num4 * 21));
+                        legendMark2._image.SetPosition(_legendMenu._background.GetPosition().X + 30.0, _legendMenu._background.GetPosition().Y + 43.0 + (double)(legendShown * 21));
+                        legendMark2._textObj.SetPosition(_legendMenu._background.GetPosition().X + 60.0, _legendMenu._background.GetPosition().Y + 47.0 + (double)(legendShown * 21));
                         _renderer.DrawSprite(legendMark2._image, 0);
                         _renderer.DrawText(legendMark2._textObj);
                     }
@@ -3908,40 +3919,40 @@ public class GameState : IGameObject
             if (_viewCommands)
             {
                 _commandMenu.Render(_renderer);
-                int num6 = 0;
-                int num7 = 0;
-                foreach (Text item3 in commandBodyText)
+                int cmdShown = 0;
+                int cmdCount = 0;
+                foreach (Text cmdLine in commandBodyText)
                 {
-                    num7++;
-                    if (num7 > _commandIndex)
+                    cmdCount++;
+                    if (cmdCount > _commandIndex)
                     {
-                        num6++;
-                        if (num6 > 25)
+                        cmdShown++;
+                        if (cmdShown > 25)
                         {
                             break;
                         }
-                        item3.SetPosition(_commandMenu._background.GetPosition().X + 28.0, _commandMenu._background.GetPosition().Y + 48.0 + (double)(num6 * 12));
-                        _renderer.DrawText(item3);
+                        cmdLine.SetPosition(_commandMenu._background.GetPosition().X + 28.0, _commandMenu._background.GetPosition().Y + 48.0 + (double)(cmdShown * 12));
+                        _renderer.DrawText(cmdLine);
                     }
                 }
             }
             if (_viewKeyboards)
             {
                 _keyboardMenu.Render(_renderer);
-                int num8 = 0;
-                int num9 = 0;
-                foreach (Text item4 in keyboardBodyText)
+                int keyShown = 0;
+                int keyCount = 0;
+                foreach (Text keyLine in keyboardBodyText)
                 {
-                    num9++;
-                    if (num9 > _keyboardIndex)
+                    keyCount++;
+                    if (keyCount > _keyboardIndex)
                     {
-                        num8++;
-                        if (num8 > 25)
+                        keyShown++;
+                        if (keyShown > 25)
                         {
                             break;
                         }
-                        item4.SetPosition(_keyboardMenu._background.GetPosition().X + 28.0, _keyboardMenu._background.GetPosition().Y + 48.0 + (double)(num8 * 12));
-                        _renderer.DrawText(item4);
+                        keyLine.SetPosition(_keyboardMenu._background.GetPosition().X + 28.0, _keyboardMenu._background.GetPosition().Y + 48.0 + (double)(keyShown * 12));
+                        _renderer.DrawText(keyLine);
                     }
                 }
             }
