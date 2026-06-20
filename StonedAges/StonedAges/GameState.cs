@@ -14820,6 +14820,15 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>
+    ///     Opens / advances the standard NPC dialog popup. Resets the popup, looks the NPC's script up by
+    ///     <paramref name="scriptName"/> in the dialog DB, and reads the node chosen by <paramref name="scriptNum"/>:
+    ///     it substitutes $variables in the text and applies the node's effects (teleport, spell animation,
+    ///     legend mark, give items, menu options, text responses). The remainder dispatches the built-in
+    ///     merchant / training dialogs by name: Buy, Sell, Deposit/Withdraw Item, Learn and Forget
+    ///     Skill/Spell/Action, Hairstyle, Dye Hair, and Dye Equipment. The // === Handler: ... === markers
+    ///     below delimit each. (Data-driven; JSON-soup locals left for a future deeper pass.)
+    /// </summary>
     public void DialogPopup(Entity en, string scriptName, byte scriptNum = 0, Texture? img = null)
     {
         _tTT = "";
@@ -14989,6 +14998,7 @@ public class GameState : IGameObject
                 }
             }
             string text8 = jToken.Value<string>("info");
+            // --- Node effect: teleport the player ---
             JToken jToken2 = jToken["teleport"];
             bool flag8 = jToken.Value<bool>("arenadeath");
             bool flag9 = jToken.Value<bool>("arenaresurrect");
@@ -15061,6 +15071,7 @@ public class GameState : IGameObject
                     DisplayChat(0, en._id, en._name + ": You never gave me that much in the first place.");
                 }
             }
+            // --- Node effect: play a spell animation ---
             JToken jToken3 = jToken["spellani"];
             if (jToken3 != null)
             {
@@ -15080,6 +15091,7 @@ public class GameState : IGameObject
                     SpellAnimation(en, ani, speed);
                 }
             }
+            // --- Node effect: grant a legend mark ---
             JToken jToken4 = jToken["newlegend"];
             if (jToken4 != null)
             {
@@ -15089,6 +15101,7 @@ public class GameState : IGameObject
                 int color = jToken4.Value<int>("color");
                 NewLegendMark(icon, id, text14, color);
             }
+            // --- Node effect: give items ---
             JToken jToken5 = jToken["newitems"];
             if (jToken5 != null)
             {
@@ -15308,6 +15321,7 @@ public class GameState : IGameObject
                     NewMap(jToken2.Value<int>("mapnum"), jToken2.Value<int>("x"), jToken2.Value<int>("y"));
                 }
             }
+            // --- Node: menu options (the player's choices) ---
             JToken jToken7 = jToken["options"];
             if (jToken7 != null)
             {
@@ -15429,6 +15443,7 @@ public class GameState : IGameObject
                 _standardDialogPopup._buttons["sdpQuitBtn"]._windowOffset = new Vector(364.0, 143.0 + num2, 0.0);
                 _standardDialogPopup._buttons["sdpQuitBtn"].Position = new Vector(364.0 + _standardDialogPopup._position.X, 143.0 + num2 + _standardDialogPopup._position.Y, 0.0);
             }
+            // --- Node: text-input responses ---
             JToken jToken8 = jToken["responses"];
             if (jToken8 != null)
             {
@@ -15887,6 +15902,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Withdraw Item (from the bank) ===
                 if (scriptName == "Withdraw Item")
                 {
                     text2 = "Withdraw Item";
@@ -16154,6 +16170,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Hairstyle change ===
                 if (scriptName == "Hairstyle")
                 {
                     text2 = "Hairstyle";
@@ -16277,6 +16294,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Dye Hair ===
                 if (scriptName == "Dye Hair")
                 {
                     text2 = "Dye Hair";
@@ -16401,6 +16419,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Dye Equipment ===
                 if (scriptName == "Dye Equipment" && scriptNum == 0)
                 {
                     text2 = "Dye Equipment";
@@ -16717,6 +16736,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Forget Skill ===
                 if (scriptName == "Forget Skill")
                 {
                     text2 = "Forget Skill";
@@ -16850,6 +16870,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Forget Spell ===
                 if (scriptName == "Forget Spell")
                 {
                     text2 = "Forget Spell";
@@ -16978,6 +16999,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Forget Action ===
                 if (scriptName == "Forget Action")
                 {
                     text2 = "Forget Action";
@@ -17111,6 +17133,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Learn Skill ===
                 if (scriptName == "Learn Skill")
                 {
                     text2 = "Learn Skill";
@@ -17240,6 +17263,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Learn Spell ===
                 if (scriptName == "Learn Spell")
                 {
                     text2 = "Learn Spell";
@@ -17369,6 +17393,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Learn Action ===
                 if (scriptName == "Learn Action")
                 {
                     text2 = "Learn Action";
@@ -17522,6 +17547,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Buy (merchant) ===
                 if (scriptName == "Buy")
                 {
                     text2 = "Buy";
@@ -17848,6 +17874,7 @@ public class GameState : IGameObject
                         _standardDialogPopup._disButtons["chatScrollDownBtn"].Enabled = true;
                     }
                 }
+                // === Handler: Sell (merchant) ===
                 if (scriptName == "Sell")
                 {
                     text2 = "Sell";
