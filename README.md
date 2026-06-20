@@ -47,6 +47,38 @@ Place the following next to the built `Stoned Ages.exe`:
 - **`StonedAges/`** — the game client: `GameWindow` + game loop, the menu/game states, networking
   (`ClientSocket`), entities, maps, inventory/UI.
 
+## Architecture
+
+A 2-D client over two projects: **`Engine/`** (graphics/data/IO library) and **`StonedAges/`** (the game
+client + the ~29k-line `GameState.cs`). The client runs an `Update`/`Render` frame loop, loads sprites from the
+`dats/` archives through the Engine readers, and speaks a Dark Ages–style binary protocol to a server.
+
+See **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** for the full map — including how to navigate
+`GameState.cs` and how the packet handlers (`…P`) and senders (`Send…`) work.
+
+## Contributing
+
+See **[`CONTRIBUTING.md`](CONTRIBUTING.md)**. Because this is a reconstruction recovered from decompiled
+binaries, much of the work is making the code read like hand-written source **without changing behavior**: keep
+the build at **0 errors / 0 warnings**, rename locals per-method (never blind find-replace across a file), and
+don't commit game data or the proprietary `irrKlang` binary. `GameWindow.cs` is the cleaned-up style exemplar.
+
+## Roadmap / where to help
+
+Good ways to take this further:
+
+- **Document the wire protocol** — turn the `…P` handlers and `Send…`/`Request…` senders into a written opcode
+  table, so a compatible server can be built.
+- **A compatible server** — the protocol is Dark Ages–style; pairing the client with an open server is what
+  makes it playable again.
+- **Externalize the server address** — `ServerConnect()` hardcodes the (offline) original; moving it to a config
+  file lets the client work against any server out of the box.
+- **Finish the de-decompile** — the remaining "giants" in `GameState.cs` (`Update`, `UpdateInput`,
+  `InitializeMenu`, `Render`, `DialogPopup`, `ChatMsg`, combat). See CONTRIBUTING for the recipe.
+- **Document the Engine data formats** — the DAT/EPF/HPF/MPF/SPF/palette readers are the spec; a written format
+  reference and asset tooling would help everyone.
+- **Modernize** — once the net40 cleanup is far enough along, a parallel port to a current .NET.
+
 ## Credits
 
 - **Original game & engine: Sostratos.**
