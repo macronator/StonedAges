@@ -824,44 +824,52 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>
+    ///     The per-frame game tick. First drains the queued server packets (chat, board, player/entity
+    ///     display, location, movement, spell animation, projectile, profile, remove) onto game state,
+    ///     then advances the world (map/weather/spawns), handles any modal prompt or the world map,
+    ///     processes menu/panel/window input, refreshes the HUD labels, runs movement + mouse-hover
+    ///     targeting/tooltips (slots, tiles, doors/chests, entities), and finally delegates to UpdateInput.
+    /// </summary>
     public void Update(double elapsedTime)
     {
         if (_initPlayer)
         {
             InitializePlayer();
         }
-        MessagePacket[] array = messagePackets.ToArray();
-        foreach (MessagePacket messagePacket in array)
+        // --- Drain queued server packets onto game state (the receive thread enqueues; we apply here) ---
+        MessagePacket[] pendingMessages = messagePackets.ToArray();
+        foreach (MessagePacket messagePacket in pendingMessages)
         {
             DisplayChat(messagePacket.MsgType, messagePacket.ID, messagePacket.Message);
             messagePackets.Remove(messagePacket);
         }
-        DisplayBoardPacket[] array2 = displayBoardPackets.ToArray();
-        foreach (DisplayBoardPacket displayBoardPacket in array2)
+        DisplayBoardPacket[] pendingBoards = displayBoardPackets.ToArray();
+        foreach (DisplayBoardPacket displayBoardPacket in pendingBoards)
         {
             UpdateBoardDisplay(displayBoardPacket.Board);
             displayBoardPackets.Remove(displayBoardPacket);
         }
-        DisplayPlayerPacket[] array3 = displayPlayerPackets.ToArray();
-        foreach (DisplayPlayerPacket displayPlayerPacket in array3)
+        DisplayPlayerPacket[] pendingPlayers = displayPlayerPackets.ToArray();
+        foreach (DisplayPlayerPacket displayPlayerPacket in pendingPlayers)
         {
             UpdatePlayerDisplay(displayPlayerPacket.Player);
             displayPlayerPackets.Remove(displayPlayerPacket);
         }
-        DisplayEntitiesPacket[] array4 = displayEntitiesPackets.ToArray();
-        foreach (DisplayEntitiesPacket displayEntitiesPacket in array4)
+        DisplayEntitiesPacket[] pendingEntities = displayEntitiesPackets.ToArray();
+        foreach (DisplayEntitiesPacket displayEntitiesPacket in pendingEntities)
         {
             UpdateEntitiesDisplay(displayEntitiesPacket.Entities);
             displayEntitiesPackets.Remove(displayEntitiesPacket);
         }
-        LocationPacket[] array5 = locationPackets.ToArray();
-        foreach (LocationPacket locationPacket in array5)
+        LocationPacket[] pendingLocations = locationPackets.ToArray();
+        foreach (LocationPacket locationPacket in pendingLocations)
         {
             Location(locationPacket.ID, locationPacket.Location, locationPacket.Direction);
             locationPackets.Remove(locationPacket);
         }
-        BodyMovementPacket[] array6 = bodyMovementPackets.ToArray();
-        foreach (BodyMovementPacket bodyMovementPacket in array6)
+        BodyMovementPacket[] pendingMoves = bodyMovementPackets.ToArray();
+        foreach (BodyMovementPacket bodyMovementPacket in pendingMoves)
         {
             if (bodyMovementPacket.AniType == 3 || bodyMovementPacket.AniType == 4 || bodyMovementPacket.AniType > 54)
             {
@@ -873,30 +881,31 @@ public class GameState : IGameObject
             }
             bodyMovementPackets.Remove(bodyMovementPacket);
         }
-        SpellAnimationPacket[] array7 = spellAnimationPackets.ToArray();
-        foreach (SpellAnimationPacket spellAnimationPacket in array7)
+        SpellAnimationPacket[] pendingSpellAnims = spellAnimationPackets.ToArray();
+        foreach (SpellAnimationPacket spellAnimationPacket in pendingSpellAnims)
         {
             SpellAnimationP(spellAnimationPacket.SpellAni);
             spellAnimationPackets.Remove(spellAnimationPacket);
         }
-        ProjectilePacket[] array8 = projectilePackets.ToArray();
-        foreach (ProjectilePacket projectilePacket in array8)
+        ProjectilePacket[] pendingProjectiles = projectilePackets.ToArray();
+        foreach (ProjectilePacket projectilePacket in pendingProjectiles)
         {
             Projectile(projectilePacket.ID, projectilePacket.TYPE);
             projectilePackets.Remove(projectilePacket);
         }
-        DisplayProfilePacket[] array9 = displayProfilePackets.ToArray();
-        foreach (DisplayProfilePacket displayProfilePacket in array9)
+        DisplayProfilePacket[] pendingProfiles = displayProfilePackets.ToArray();
+        foreach (DisplayProfilePacket displayProfilePacket in pendingProfiles)
         {
             DisplayProfile(displayProfilePacket.Profile);
             displayProfilePackets.Remove(displayProfilePacket);
         }
-        RemoveEntityPacket[] array10 = removeEntityPackets.ToArray();
-        foreach (RemoveEntityPacket removeEntityPacket in array10)
+        RemoveEntityPacket[] pendingRemoves = removeEntityPackets.ToArray();
+        foreach (RemoveEntityPacket removeEntityPacket in pendingRemoves)
         {
             RemoveEntityP(removeEntityPacket.ID);
             removeEntityPackets.Remove(removeEntityPacket);
         }
+        // --- Advance the world: map, weather, monster spawns, NPC tile effects, cast-cooldown reset ---
         _map.Update(elapsedTime);
         _weatherEffect.Update((float)elapsedTime);
         Engine.Point position = _input.Mouse.Position;
@@ -941,6 +950,7 @@ public class GameState : IGameObject
                 }
             }
         }
+        // --- Modal prompts: while one is open, consume input and return early ---
         if (_deletePrompt._labels["delpromptText"]._text != "")
         {
             if (_input.Keyboard.IsKeyPressed(Keys.Escape))
@@ -963,6 +973,7 @@ public class GameState : IGameObject
             _prompt.HandleInput();
             return;
         }
+        // --- World-map screen ---
         if (_worldMap)
         {
             Town[] array13 = Town._List.Values.ToArray();
@@ -983,6 +994,7 @@ public class GameState : IGameObject
             }
             return;
         }
+        // --- Menu / panel / window input + per-frame skill/spell/action updates ---
         if (_input.Mouse.LeftPressed && _eTT != "")
         {
             _eTT = "";
@@ -1074,6 +1086,7 @@ public class GameState : IGameObject
                 s.Update(elapsedTime);
             });
         }
+        // --- Refresh the HUD: orbs, info bar, name/location/stat labels, group/users lists ---
         UpdateHPMPOrbs();
         ClearInfoBar(elapsedTime);
         _miscMenu._labels["nameLabel"].ChangeText(_player._name);
@@ -1390,6 +1403,7 @@ public class GameState : IGameObject
         {
             _usersMenu.HandleInput();
         }
+        // --- Player movement, then mouse-hover targeting/tooltips over slots, tiles, objects, entities ---
         Move(elapsedTime);
         bool flag = false;
         if (!_chatMode && !_viewingStuff() && !_viewingLegend && !_infoBarMenu._buttons["sysmsgBtn"].Held)
@@ -1482,6 +1496,7 @@ public class GameState : IGameObject
                 }
                 if (!_viewingLegend && !_viewingProfile && !_viewingOthersLegend && !_viewingOthersProfile)
                 {
+                    // --- Interactive world objects: doors (open/close + walls), chests, signs, boards ---
                     IWO[] array14 = _map._iwos.ToArray();
                     foreach (IWO iWO in array14)
                     {
@@ -1734,6 +1749,7 @@ public class GameState : IGameObject
                         spellBar._hover = false;
                     }
                 }
+                // --- Hover/click entities: name tags, tooltips, targeting, cast, NPC dialog, profile ---
                 foreach (Entity item in from z in _map._entities.Values.ToArray()
                                         orderby z._tileTime
                                         select z)
@@ -1859,6 +1875,7 @@ public class GameState : IGameObject
                 }
             }
         }
+        // --- Nothing hovered: clear tooltip + cursor; update drag icon; then process keyboard input ---
         if (!flag && !_viewingDialog)
         {
             _tTT = "";
