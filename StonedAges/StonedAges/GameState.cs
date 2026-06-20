@@ -12362,9 +12362,16 @@ public class GameState : IGameObject
         _loadedSpell = null;
     }
 
+    /// <summary>
+    ///     Casts the currently loaded spell on entity <paramref name="e"/> (rate-limited to ~3 casts/sec).
+    ///     Resolves the spell's status against the target: curse and amplify (fas) tiers only land when no
+    ///     stronger one is present and they replace the weaker tier, while "remove" spells strip listed
+    ///     statuses. On success it plays the body/sound/spell animations, applies damage or heal, shows the
+    ///     cast message, and adds the status to the target's spell bar. Finally clears the loaded spell.
+    /// </summary>
     private void CastLoadedSpellOnTarget(Entity e)
     {
-        bool flag = false;
+        bool succeeded = false;
         if (DateTime.UtcNow.Subtract(lastSpellUse).TotalMilliseconds < 1000.0)
         {
             if (castCount >= 3)
@@ -12373,36 +12380,37 @@ public class GameState : IGameObject
             }
             castCount++;
         }
-        string text = _loadedSpell._name.ToLower();
-        if (!_loadedSpell._checkSpellBar || !e._spellBar.ContainsKey(text))
+        string spellName = _loadedSpell._name.ToLower();
+        if (!_loadedSpell._checkSpellBar || !e._spellBar.ContainsKey(spellName))
         {
+            // Curse stacking: a tier only lands if no stronger curse is present, replacing the weaker one.
             if (_loadedSpell._status.ToLower() == "curse1")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hascradh)
                 {
                     SystemMsg("Another curse afflicts thee. [cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasmorcradh)
                 {
                     SystemMsg("Another curse afflicts thee. [mor cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasardcradh)
                 {
                     SystemMsg("Another curse afflicts thee. [ard cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasdiacradh)
                 {
                     SystemMsg("Another curse afflicts thee. [dia cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "curse2")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagcradh)
                 {
                     e._spellBar["Curse1"].Remove(replace: true);
@@ -12410,22 +12418,22 @@ public class GameState : IGameObject
                 else if (e.hasmorcradh)
                 {
                     SystemMsg("Another curse afflicts thee. [mor cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasardcradh)
                 {
                     SystemMsg("Another curse afflicts thee. [ard cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasdiacradh)
                 {
                     SystemMsg("Another curse afflicts thee. [dia cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "curse3")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagcradh)
                 {
                     e._spellBar["Curse1"].Remove(replace: true);
@@ -12437,17 +12445,17 @@ public class GameState : IGameObject
                 else if (e.hasardcradh)
                 {
                     SystemMsg("Another curse afflicts thee. [ard cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
                 else if (e.hasdiacradh)
                 {
                     SystemMsg("Another curse afflicts thee. [dia cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "curse4")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagcradh)
                 {
                     e._spellBar["Curse1"].Remove(replace: true);
@@ -12463,12 +12471,12 @@ public class GameState : IGameObject
                 else if (e.hasdiacradh)
                 {
                     SystemMsg("Another curse afflicts thee. [dia cradh]", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "curse5")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagcradh)
                 {
                     e._spellBar["Curse1"].Remove(replace: true);
@@ -12486,18 +12494,19 @@ public class GameState : IGameObject
                     e._spellBar["Curse4"].Remove(replace: true);
                 }
             }
+            // Amplify (fas) stacking: same tier rule as curses, against the target's fas buffs.
             else if (_loadedSpell._status.ToLower() == "amplify1")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasfas || e.hasmorfas || e.hasardfas || e.hasdiafas)
                 {
                     SystemMsg("A better version of that spell is already cast.", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "amplify2")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagfas)
                 {
                     e._spellBar["Amplify1"].Remove(replace: true);
@@ -12505,12 +12514,12 @@ public class GameState : IGameObject
                 else if (e.hasmorfas || e.hasardfas || e.hasdiafas)
                 {
                     SystemMsg("A better version of that spell is already cast.", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "amplify3")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagfas)
                 {
                     e._spellBar["Amplify1"].Remove(replace: true);
@@ -12522,12 +12531,12 @@ public class GameState : IGameObject
                 else if (e.hasardfas || e.hasdiafas)
                 {
                     SystemMsg("A better version of that spell is already cast.", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "amplify4")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagfas)
                 {
                     e._spellBar["Amplify1"].Remove(replace: true);
@@ -12543,12 +12552,12 @@ public class GameState : IGameObject
                 else if (e.hasdiafas)
                 {
                     SystemMsg("A better version of that spell is already cast.", 3);
-                    flag = false;
+                    succeeded = false;
                 }
             }
             else if (_loadedSpell._status.ToLower() == "amplify5")
             {
-                flag = true;
+                succeeded = true;
                 if (e.hasbeagfas)
                 {
                     e._spellBar["Amplify1"].Remove(replace: true);
@@ -12568,20 +12577,21 @@ public class GameState : IGameObject
             }
             else if (_loadedSpell._removeStatus.Count() > 0)
             {
-                foreach (string item in _loadedSpell._removeStatus)
+                foreach (string statusKey in _loadedSpell._removeStatus)
                 {
-                    if (e._spellBar.ContainsKey(item))
+                    if (e._spellBar.ContainsKey(statusKey))
                     {
-                        flag = true;
-                        e._spellBar[item].Remove();
+                        succeeded = true;
+                        e._spellBar[statusKey].Remove();
                     }
                 }
             }
             else
             {
-                flag = true;
+                succeeded = true;
             }
-            if (!_loadedSpell._successOnly || flag)
+            // Apply: body/sound/animations, damage or heal, cast message, and the status spell-bar.
+            if (!_loadedSpell._successOnly || succeeded)
             {
                 BodyMovement(_loadedSpell._bodyAniType, _loadedSpell._bodyAniSpeed);
                 if (_loadedSpell._sound != byte.MaxValue)
@@ -12610,14 +12620,10 @@ public class GameState : IGameObject
                 }
                 if (_loadedSpell._checkSpellBar || _loadedSpell._allowRefresh)
                 {
-                    NewSpellBar((_loadedSpell._status != "") ? _loadedSpell._status : text, _loadedSpell._type, _loadedSpell._frame - 1, _loadedSpell._seconds, _loadedSpell._startMsg, _loadedSpell._reMsg, _loadedSpell._endMsg, e);
+                    NewSpellBar((_loadedSpell._status != "") ? _loadedSpell._status : spellName, _loadedSpell._type, _loadedSpell._frame - 1, _loadedSpell._seconds, _loadedSpell._startMsg, _loadedSpell._reMsg, _loadedSpell._endMsg, e);
                 }
             }
-            if (_loadedSpell._manaCost > 0)
-            {
-                _ = _loadedSpell._manaCost;
-                _ = _player._curMP;
-            }
+            // Mana cost is server-authoritative; no client-side deduction here.
             if (!_GM && _loadedSpell._cooldown >= 1.0)
             {
                 _loadedSpell._highlight = true;
@@ -12627,9 +12633,16 @@ public class GameState : IGameObject
         _loadedSpell = null;
     }
 
+    /// <summary>
+    ///     Casts spell <paramref name="s"/> from the player. After the rate-limit, cooldown, dead/ghost and
+    ///     stealth checks, it resolves targets by the spell's target type - return-home (dachaidh), the tile
+    ///     in front (facing), a straight line, a radius (lamh / gar), self, a placed trap, or deferred click
+    ///     targeting (target/tile/meall) - and applies the animation, status, and damage. On success it shows
+    ///     the cast message, counts the use toward leveling, and starts the cooldown.
+    /// </summary>
     private void UseScript(Spell s)
     {
-        bool flag = false;
+        bool succeeded = false;
         if (s._targettype != "target" && s._targettype != "tile" && s._targettype != "meall" && DateTime.UtcNow.Subtract(lastSpellUse).TotalMilliseconds < 1000.0)
         {
             if (castCount >= 3)
@@ -12656,38 +12669,35 @@ public class GameState : IGameObject
             SystemMsg("Spirits can't do that.", 3);
             return;
         }
-        if (s._manaCost > 0)
-        {
-            _ = s._manaCost;
-            _ = _player._curMP;
-        }
+        // Mana cost is server-authoritative; no client-side deduction here.
         if (s._checkIfHidden && _player.Hidden)
         {
             _player._spellBar["Invisible"].Remove();
             _player.Hidden = false;
             SendDisplayPlayer();
         }
+        // --- Resolve targets by the spell's target type, then apply its effects ---
         if (s._name.Equals("dachaidh", StringComparison.CurrentCultureIgnoreCase))
         {
-            flag = true;
+            succeeded = true;
             SoundBodyFromAni(s);
             ReturnHome();
         }
         else if (s._targettype == "facing")
         {
-            Tile tile = TileImFacing();
-            bool flag2 = false;
-            if (tile != null)
+            Tile facingTile = TileImFacing();
+            bool soundPlayed = false;
+            if (facingTile != null)
             {
-                Entity[] array = tile._entities.Values.ToArray();
-                foreach (Entity entity in array)
+                Entity[] targets = facingTile._entities.Values.ToArray();
+                foreach (Entity entity in targets)
                 {
                     if ((entity is Monster && !(entity as Monster)._companion) || entity is NPC)
                     {
-                        flag = true;
-                        if (!flag2)
+                        succeeded = true;
+                        if (!soundPlayed)
                         {
-                            flag2 = true;
+                            soundPlayed = true;
                             SoundBodyFromAni(s);
                         }
                         if (s._toani > 0)
@@ -12702,70 +12712,70 @@ public class GameState : IGameObject
         }
         else if (s._targettype == "line")
         {
-            bool flag3 = false;
-            Entity[] array2 = _map._entities.Values.ToArray();
-            foreach (Entity entity2 in array2)
+            bool soundPlayed = false;
+            Entity[] targets = _map._entities.Values.ToArray();
+            foreach (Entity entity in targets)
             {
-                if (((entity2 is Monster && !(entity2 as Monster)._companion) || entity2 is NPC) && entity2._id != _player._id && _player._location.InLine(entity2._location, (D)_player._body._direction, s._range))
+                if (((entity is Monster && !(entity as Monster)._companion) || entity is NPC) && entity._id != _player._id && _player._location.InLine(entity._location, (D)_player._body._direction, s._range))
                 {
-                    flag = true;
-                    if (!flag3)
+                    succeeded = true;
+                    if (!soundPlayed)
                     {
-                        flag3 = true;
+                        soundPlayed = true;
                         SoundBodyFromAni(s);
                     }
                     if (s._toani > 0)
                     {
-                        SpellAnimation(entity2, s._toani, s._toanispeed);
+                        SpellAnimation(entity, s._toani, s._toanispeed);
                     }
-                    SpellBarCheck(s, entity2);
-                    entity2.DamageHealth(s._dmg, _player);
+                    SpellBarCheck(s, entity);
+                    entity.DamageHealth(s._dmg, _player);
                 }
             }
         }
         else if (s._targettype == "lamh")
         {
-            bool flag4 = false;
-            Entity[] array3 = _map._entities.Values.ToArray();
-            foreach (Entity entity3 in array3)
+            bool soundPlayed = false;
+            Entity[] targets = _map._entities.Values.ToArray();
+            foreach (Entity entity in targets)
             {
-                if (((entity3 is Monster && !(entity3 as Monster)._companion) || entity3 is NPC) && entity3._id != _player._id && _player._location.DistanceFrom(entity3._location) <= s._range)
+                if (((entity is Monster && !(entity as Monster)._companion) || entity is NPC) && entity._id != _player._id && _player._location.DistanceFrom(entity._location) <= s._range)
                 {
-                    flag = true;
-                    if (!flag4)
+                    succeeded = true;
+                    if (!soundPlayed)
                     {
-                        flag4 = true;
+                        soundPlayed = true;
                         SoundBodyFromAni(s);
                     }
                     if (s._toani > 0)
                     {
-                        SpellAnimation(entity3, s._toani, s._toanispeed);
+                        SpellAnimation(entity, s._toani, s._toanispeed);
                     }
-                    SpellBarCheck(s, entity3);
-                    entity3.DamageHealth(s._dmg, _player);
+                    SpellBarCheck(s, entity);
+                    entity.DamageHealth(s._dmg, _player);
                 }
             }
         }
         else if (s._targettype == "gar")
         {
-            bool flag5 = false;
-            Entity[] array4 = _map._entities.Values.ToArray();
-            foreach (Entity entity4 in array4)
+            bool soundPlayed = false;
+            Entity[] targets = _map._entities.Values.ToArray();
+            foreach (Entity entity in targets)
             {
-                if (((entity4 is Monster && !(entity4 as Monster)._companion) || entity4 is NPC) && entity4._id != _player._id && _player._location.DistanceFrom(entity4._location) <= 13)
+                if (((entity is Monster && !(entity as Monster)._companion) || entity is NPC) && entity._id != _player._id && _player._location.DistanceFrom(entity._location) <= 13)
                 {
-                    flag = true;
-                    if (!flag5)
+                    succeeded = true;
+                    if (!soundPlayed)
                     {
-                        flag5 = true;
+                        soundPlayed = true;
                         SoundBodyFromAni(s);
                     }
                     if (s._toani > 0)
                     {
-                        SpellAnimation(entity4, s._toani, s._toanispeed);
+                        SpellAnimation(entity, s._toani, s._toanispeed);
                     }
-                    SpellBarCheck(s, entity4);
-                    entity4.DamageHealth(s._dmg, _player);
+                    SpellBarCheck(s, entity);
+                    entity.DamageHealth(s._dmg, _player);
                 }
             }
         }
@@ -12773,7 +12783,7 @@ public class GameState : IGameObject
         {
             if (!s._checkSpellBar || !_player._spellBar.ContainsKey(s._name))
             {
-                flag = true;
+                succeeded = true;
                 SoundBodyFromAni(s);
                 if (s._toani > 0)
                 {
@@ -12784,26 +12794,23 @@ public class GameState : IGameObject
         }
         else if (s._targettype == "trap")
         {
-            flag = true;
-            Tile tile2 = _player._tile;
+            succeeded = true;
+            Tile trapTile = _player._tile;
             Reactor reactor = new Reactor(new Location(_player._location.X, _player._location.Y));
             reactor._trap = s;
             reactor._type = 0;
             reactor._triggerType = 2;
             _map._reactors.Add(reactor);
-            tile2.SpellAni(96, 80, repeat: true);
+            trapTile.SpellAni(96, 80, repeat: true);
         }
+        // target/tile/meall: defer - load the spell so the next mouse click picks the target/tile
         else if (s._targettype == "target" || s._targettype == "tile" || s._targettype == "meall")
         {
             _loadedSpell = s;
         }
-        if (flag)
+        if (succeeded)
         {
-            if (s._manaCost > 0)
-            {
-                _ = s._manaCost;
-                _ = _player._curMP;
-            }
+            // (mana cost: server-authoritative, no client-side deduction)
             if (s._castMsg)
             {
                 SystemMsg("You cast " + s._name, 3);
