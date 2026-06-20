@@ -12926,167 +12926,167 @@ public class GameState : IGameObject
             // === Skill: ambush (teleport behind a lined-up target) ===
             if (s._name.Equals("ambush", StringComparison.CurrentCultureIgnoreCase))
             {
-                bool flag2 = false;
-                foreach (Entity item2 in from z in _map._entities.Values.ToArray()
+                bool soundPlayed = false;
+                foreach (Entity target in from z in _map._entities.Values.ToArray()
                                          orderby z._location.DistanceFrom(_player._location)
                                          select z)
                 {
-                    if (item2._id == _player._id || !_player._location.InLine(item2._location, (D)_player._body._direction, 3) || item2 is Item)
+                    if (target._id == _player._id || !_player._location.InLine(target._location, (D)_player._body._direction, 3) || target is Item)
                     {
                         continue;
                     }
-                    Tile tile3 = null;
-                    Location location = new Location(0, 0);
-                    bool flag3 = true;
+                    Tile landingTile = null;
+                    Location candidate = new Location(0, 0);
+                    bool needTile = true;
                     flag = true;
-                    if (!flag2)
+                    if (!soundPlayed)
                     {
-                        flag2 = true;
+                        soundPlayed = true;
                         SoundBodyFromAni(s);
                     }
                     if (_player._body._direction == 0)
                     {
-                        location = new Location(item2._location.X, item2._location.Y - 1);
-                        if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                        candidate = new Location(target._location.X, target._location.Y - 1);
+                        if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                         {
-                            tile3 = _map._tiles[(item2._location.Y - 1) * (int)_map._width + item2._location.X];
-                            if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                            landingTile = _map._tiles[(target._location.Y - 1) * (int)_map._width + target._location.X];
+                            if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                             {
                                 _player._body._direction = 2;
-                                Teleport(tile3.Location.X, tile3.Location.Y);
+                                Teleport(landingTile.Location.X, landingTile.Location.Y);
                                 _player._body.setDefault();
-                                flag3 = false;
+                                needTile = false;
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X - 1, item2._location.Y);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X - 1, target._location.Y);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 1;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X + 1, item2._location.Y);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X + 1, target._location.Y);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 3;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
                             SystemMsg("There is no way to go.", 3);
                         }
                     }
                     else if (_player._body._direction == 2)
                     {
-                        location = new Location(item2._location.X, item2._location.Y + 1);
-                        if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                        candidate = new Location(target._location.X, target._location.Y + 1);
+                        if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                         {
-                            tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                            if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                            landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                            if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                             {
                                 _player._body._direction = 0;
-                                Teleport(tile3.Location.X, tile3.Location.Y);
+                                Teleport(landingTile.Location.X, landingTile.Location.Y);
                                 _player._body.setDefault();
-                                flag3 = false;
+                                needTile = false;
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X + 1, item2._location.Y);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X + 1, target._location.Y);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 3;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X - 1, item2._location.Y);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X - 1, target._location.Y);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 1;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
                             SystemMsg("There is no way to go.", 3);
                         }
                     }
                     else if (_player._body._direction == 3)
                     {
-                        location = new Location(item2._location.X - 1, item2._location.Y);
-                        if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                        candidate = new Location(target._location.X - 1, target._location.Y);
+                        if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                         {
-                            tile3 = _map._tiles[item2._location.Y * (int)_map._width + item2._location.X - 1];
-                            if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                            landingTile = _map._tiles[target._location.Y * (int)_map._width + target._location.X - 1];
+                            if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                             {
                                 _player._body._direction = 1;
-                                Teleport(tile3.Location.X, tile3.Location.Y);
+                                Teleport(landingTile.Location.X, landingTile.Location.Y);
                                 _player._body.setDefault();
-                                flag3 = false;
+                                needTile = false;
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X, item2._location.Y + 1);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X, target._location.Y + 1);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 0;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X, item2._location.Y - 1);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X, target._location.Y - 1);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 2;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
                             SystemMsg("There is no way to go.", 3);
                         }
@@ -13097,49 +13097,49 @@ public class GameState : IGameObject
                         {
                             break;
                         }
-                        location = new Location(item2._location.X + 1, item2._location.Y);
-                        if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                        candidate = new Location(target._location.X + 1, target._location.Y);
+                        if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                         {
-                            tile3 = _map._tiles[item2._location.Y * (int)_map._width + item2._location.X + 1];
-                            if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                            landingTile = _map._tiles[target._location.Y * (int)_map._width + target._location.X + 1];
+                            if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                             {
                                 _player._body._direction = 3;
-                                Teleport(tile3.Location.X, tile3.Location.Y);
+                                Teleport(landingTile.Location.X, landingTile.Location.Y);
                                 _player._body.setDefault();
-                                flag3 = false;
+                                needTile = false;
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X, item2._location.Y - 1);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X, target._location.Y - 1);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 2;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
-                            location = new Location(item2._location.X, item2._location.Y + 1);
-                            if (location.X < (int)_map._width && location.Y < (int)_map._height && location.X >= 0 && location.Y >= 0)
+                            candidate = new Location(target._location.X, target._location.Y + 1);
+                            if (candidate.X < (int)_map._width && candidate.Y < (int)_map._height && candidate.X >= 0 && candidate.Y >= 0)
                             {
-                                tile3 = _map._tiles[location.Y * (int)_map._width + location.X];
-                                if (tile3 != null && tile3.getTopMostNonItem() == null && tile3._walkable)
+                                landingTile = _map._tiles[candidate.Y * (int)_map._width + candidate.X];
+                                if (landingTile != null && landingTile.getTopMostNonItem() == null && landingTile._walkable)
                                 {
                                     _player._body._direction = 0;
-                                    Teleport(tile3.Location.X, tile3.Location.Y);
+                                    Teleport(landingTile.Location.X, landingTile.Location.Y);
                                     _player._body.setDefault();
-                                    flag3 = false;
+                                    needTile = false;
                                 }
                             }
                         }
-                        if (flag3)
+                        if (needTile)
                         {
                             SystemMsg("There is no way to go.", 3);
                         }
