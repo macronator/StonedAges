@@ -4001,10 +4001,18 @@ public class GameState : IGameObject
         _renderer.Render();
     }
 
+    /// <summary>
+    ///     Builds every in-game UI surface once at startup: the HUD (orbs, side panels, info bar, misc
+    ///     labels), the panels (inventory/skills/spells/chat/stats/actions/info), the menu bar and its
+    ///     sub-menus (options/friends/macros/settings/board/mail/users), the profile/legend windows, and
+    ///     the popups (prompts, sense/sign, NPC dialog, commands, group). The `// === ... ===` markers
+    ///     below delimit each menu's construction.
+    /// </summary>
     private void InitializeMenu()
     {
         Vector vector = default(Vector);
         vector = new Vector(190.0, 133.0, 0.0);
+        // === Generic OK prompt ===
         _prompt = new ButtonMenu(_input, _font, vector.X, vector.Y, 263.0, 74.0, moveable: true);
         _prompt._sprite.Texture = _textureManager.Get("promptok");
         _prompt._sprite.SetPosition(vector);
@@ -4032,6 +4040,7 @@ public class GameState : IGameObject
         _prompt._labels.Add("promptText", value);
         _prompt._buttons.Add("promptOkBtn", button);
         vector = new Vector(190.0, 133.0, 0.0);
+        // === Delete prompt (delete / cancel) ===
         _deletePrompt = new ButtonMenu(_input, _font, vector.X, vector.Y, 263.0, 74.0, moveable: true);
         _deletePrompt._sprite.Texture = _textureManager.Get("promptok");
         _deletePrompt._sprite.SetPosition(vector);
@@ -4057,6 +4066,7 @@ public class GameState : IGameObject
         _deletePrompt._labels.Add("delpromptText", value2);
         _deletePrompt._buttons.Add("delpromptDeleteBtn", button3);
         _deletePrompt._buttons.Add("delpromptCancelBtn", button2);
+        // === HUD: health/mana orbs, portrait, status labels ===
         _healthOrb.Texture = _textureManager.Get("orb001_F0_C0");
         _healthOrb.SetPosition(-1.0, 299.0);
         _manaOrb.Texture = _textureManager.Get("orb002_F0_C0");
@@ -4090,15 +4100,19 @@ public class GameState : IGameObject
         }
         Engine.Button fullInvBtn = new Engine.Button(_textureManager, 534.0, 313.0, 16.0, 15.0, "fullinv_F1", "fullinv_F2", "", "fullinv_F1");
         fullInvBtn.Enabled = false;
+        // === Inventory panel ===
         _inventoryMenu = new ButtonMenu(_input, _font);
         _inventoryMenu._background.Texture = _textureManager.Get("panelnums");
         _inventoryMenu._background.SetPosition(96.0, 336.0);
+        // === Skill panel ===
         _skillMenu = new ButtonMenu(_input, _font);
         _skillMenu._background.Texture = _textureManager.Get("panelnums");
         _skillMenu._background.SetPosition(96.0, 336.0);
+        // === Spell panel ===
         _spellMenu = new ButtonMenu(_input, _font);
         _spellMenu._background.Texture = _textureManager.Get("panelnums");
         _spellMenu._background.SetPosition(96.0, 336.0);
+        // === Chat panel ===
         _chatMenu = new ButtonMenu(_input, _font);
         Text label11 = DrawLabel("", Engine.Color.White, 94.0, 339.0, 420, "left");
         Engine.Button button4 = new Engine.Button(_textureManager, 514.0, 338.0, 13.0, 12.0, "scroll_F0", "scroll_F1", "", "scroll_F1");
@@ -4165,6 +4179,7 @@ public class GameState : IGameObject
         _chatMenu.AddButton("chatScrollerBtn", button6);
         _chatMenu.AddButton("chatScrollUpBtn", button4);
         _chatMenu.AddButton("chatScrollDownBtn", button5);
+        // === Stat panel ===
         _statMenu = new ButtonMenu(_input, _font);
         _statMenu._background.Texture = _textureManager.Get("stat001");
         _statMenu._background.SetPosition(87.0, 332.0);
@@ -4281,9 +4296,11 @@ public class GameState : IGameObject
         _statMenu.AddButton("wisBtn", button10);
         _statMenu.AddButton("conBtn", button11);
         _statMenu.AddButton("dexBtn", button12);
+        // === Action panel ===
         _actionMenu = new ButtonMenu(_input, _font);
         _actionMenu._background.Texture = _textureManager.Get("panelnums");
         _actionMenu._background.SetPosition(96.0, 336.0);
+        // === Info panel ===
         _infoMenu = new ButtonMenu(_input, _font);
         Text label31 = DrawLabel("", Engine.Color.Orange, 94.0, 339.0, 420, "left");
         Engine.Button button13 = new Engine.Button(_textureManager, 514.0, 338.0, 13.0, 12.0, "scroll_F0", "scroll_F1", "", "scroll_F1");
@@ -4350,6 +4367,7 @@ public class GameState : IGameObject
         _infoMenu.AddButton("infoScrollerBtn", button15);
         _infoMenu.AddButton("infoScrollUpBtn", button13);
         _infoMenu.AddButton("infoScrollDownBtn", button14);
+        // === Panel selector (the panel-tab row) ===
         _panelMenu = new ButtonMenu(_input, _font);
         Engine.Button inventoryBtn = new Engine.Button(_textureManager, 531.0, 330.0, 22.0, 23.0, "", "gbicon01_F0");
         Engine.Button skillBtn = new Engine.Button(_textureManager, 531.0, 353.0, 22.0, 23.0, "", "gbicon01_F1");
@@ -4429,6 +4447,7 @@ public class GameState : IGameObject
         _panelMenu.AddButton("statBtn", statBtn);
         _panelMenu.AddButton("actionBtn", actionBtn);
         vector = new Vector(4.0, 4.0, 0.0);
+        // === Other player's profile window ===
         _othersProfileMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 276.0, 309.0, moveable: true);
         _othersProfileMenu._background.Texture = _textureManager.Get("equip04_F0_C0");
         _othersProfileMenu._background.SetPosition(vector);
@@ -4478,6 +4497,7 @@ public class GameState : IGameObject
         _othersProfileMenu.AddButton("othersexchangeProfileMenuBtn", button18);
         _othersProfileMenu.AddButton("otherslegendProfileMenuBtn", otherslegendProfileMenuBtn);
         vector = new Vector(100.0, 4.0, 0.0);
+        // === Other player's legend window ===
         _othersLegendMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 451.0, 418.0, moveable: true);
         _othersLegendMenu._background.Texture = _textureManager.Get("legend_F0_C0");
         _othersLegendMenu._background.SetPosition(vector);
@@ -4553,6 +4573,7 @@ public class GameState : IGameObject
         _othersLegendMenu.AddLabel("otherslegendNameLabel", label37);
         _othersLegendMenu.AddButton("closeothersLegendMenuBtn", button20);
         vector = new Vector(4.0, 4.0, 0.0);
+        // === Own profile window ===
         _profileMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 292.0, 308.0, moveable: true);
         _profileMenu._background.Texture = _textureManager.Get("equip01");
         _profileMenu._background.SetPosition(vector);
@@ -4657,6 +4678,7 @@ public class GameState : IGameObject
         _profileMenu.AddButton("groupProfileMenuBtn", groupProfileMenuBtn);
         _profileMenu.AddButton("legendProfileMenuBtn", legendProfileMenuBtn);
         vector = new Vector(100.0, 4.0, 0.0);
+        // === Own legend window ===
         _legendMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 451.0, 418.0, moveable: true);
         _legendMenu._background.Texture = _textureManager.Get("legend_F0_C0");
         _legendMenu._background.SetPosition(vector);
@@ -4731,6 +4753,7 @@ public class GameState : IGameObject
         _legendMenu.AddButton("legendScrollDownBtn", button42);
         _legendMenu.AddLabel("legendNameLabel", label43);
         _legendMenu.AddButton("closeLegendMenuBtn", button40);
+        // === Main menu bar ===
         _menu = new ButtonMenu(_input, _font);
         _menu._background.Texture = _textureManager.Get("backgrnd");
         Engine.Button optionsBtn = new Engine.Button(_textureManager, 619.0, 233.0, 22.0, 23.0, "", "gbicon02_F0");
@@ -4765,6 +4788,7 @@ public class GameState : IGameObject
         _menu.AddButton("optionsBtn", optionsBtn);
         _menu.AddButton("mail1Btn", mail1Btn);
         _menu.AddButton("usersBtn", usersBtn);
+        // === Options menu ===
         _optionsMenu = new ButtonMenu(_input, _font);
         _optionsMenu._background.Texture = _textureManager.Get("option01_F0_C0");
         _optionsMenu._background.SetPosition(444.0, 4.0);
@@ -4854,6 +4878,7 @@ public class GameState : IGameObject
         _optionsMenu.AddButton("friendBtn", friendBtn);
         _optionsMenu.AddButton("macroBtn", macroBtn);
         _optionsMenu.AddButton("settingBtn", settingBtn);
+        // === Friends menu ===
         _friendsMenu = new ButtonMenu(_input, _font);
         _friendsMenu._background.Texture = _textureManager.Get("friend_F0_C0");
         _friendsMenu._background.SetPosition(0.0, 4.0);
@@ -5064,6 +5089,7 @@ public class GameState : IGameObject
         _friendsMenu.AddTextField("friend19Box", friend19Box);
         _friendsMenu.AddTextField("friend20Box", friend20Box);
         _friendsMenu.AddButton("closeFriendsBtn", button48);
+        // === Macro menu ===
         _macroMenu = new ButtonMenu(_input, _font);
         _macroMenu._background.Texture = _textureManager.Get("macro01_F0_C0");
         _macroMenu._background.SetPosition(0.0, 4.0);
@@ -5094,6 +5120,7 @@ public class GameState : IGameObject
         _macroMenu.AddTextField("phrase9Box", textField11);
         _macroMenu.AddTextField("phrase10Box", textField12);
         _macroMenu.AddButton("closeMacroBtn", button49);
+        // === Settings (F4) menu ===
         _settingsMenu = new ButtonMenu(_input, _font);
         _settingsMenu._background.Texture = _textureManager.Get("gset01_F0_C0");
         _settingsMenu._background.SetPosition(0.0, 4.0);
@@ -5298,6 +5325,7 @@ public class GameState : IGameObject
         _settingsMenu.AddLabel("settings9Lab", settings9Lab);
         _settingsMenu.AddLabel("settings10Lab", settings10Lab);
         _settingsMenu.AddButton("closeSettingsBtn", button50);
+        // === Board / mail menu ===
         _boardMenu = new ButtonMenu(_input, _font);
         _boardMenu._background.Texture = _textureManager.Get("dlgbbs01_F0_C0");
         _boardMenu._background.SetPosition(0.0, 4.0);
@@ -5347,6 +5375,7 @@ public class GameState : IGameObject
             viewBoardBtn.Enabled = false;
         };
         _boardMenu.AddButton("closeBoardBtn", button51);
+        // === Mail list ===
         _mailListMenu = new ButtonMenu(_input, _font);
         _mailListMenu._background.Texture = _textureManager.Get("dlgbbs01_F0_C0");
         _mailListMenu._background.SetPosition(0.0, 4.0);
@@ -5405,6 +5434,7 @@ public class GameState : IGameObject
         _mailListMenu.AddButton("deleteMailBtn", button54);
         _mailListMenu.AddButton("upMailBtn", button55);
         _mailListMenu.AddButton("closeMailBtn", button56);
+        // === Board list ===
         _boardListMenu = new ButtonMenu(_input, _font);
         _boardListMenu._background.Texture = _textureManager.Get("dlgbbs01_F0_C0");
         _boardListMenu._background.SetPosition(0.0, 4.0);
@@ -5484,6 +5514,7 @@ public class GameState : IGameObject
         };
         _boardListMenu.AddButton("closeBoardListBtn", button59);
         _boardListMenu.AddButton("upBoardListBtn", button58);
+        // === Compose-post window ===
         _composePostMenu = new ButtonMenu(_input, _font);
         _composePostMenu._background.Texture = _textureManager.Get("dlgbbs03_F0_C0");
         _composePostMenu._background.SetPosition(0.0, 4.0);
@@ -5519,6 +5550,7 @@ public class GameState : IGameObject
         _composePostMenu.AddTextField("composeBody", textField15);
         _composePostMenu.AddButton("sendComposedBtn", button60);
         _composePostMenu.AddButton("cancelComposedBtn", button61);
+        // === View-post window ===
         _viewPostMenu = new ButtonMenu(_input, _font);
         _viewPostMenu._background.Texture = _textureManager.Get("dlgbbs02_F0_C0");
         _viewPostMenu._background.SetPosition(0.0, 4.0);
@@ -5594,6 +5626,7 @@ public class GameState : IGameObject
         _viewPostMenu.AddButton("deleteViewBtn", button66);
         _viewPostMenu.AddButton("upViewBtn", button67);
         _viewPostMenu.AddButton("closeViewBtn", button68);
+        // === Online users window ===
         _usersMenu = new ButtonMenu(_input, _font);
         _usersMenu._background.Texture = _textureManager.Get("users01");
         _usersMenu._background.SetPosition(150.0, 4.0);
@@ -5786,6 +5819,7 @@ public class GameState : IGameObject
         _usersMenu.AddButton("guildBtn", guildBtn);
         _usersMenu.AddButton("friendUBtn", friendUBtn);
         _usersMenu.AddButton("closeUsersBtn", button69);
+        // === Misc HUD (chat input + status labels) ===
         _miscMenu = new ButtonMenu(_input, _font);
         portraitFlap._onPressEvent = delegate
         {
@@ -5830,6 +5864,7 @@ public class GameState : IGameObject
         _miscMenu.AddLabel("mapLabel", label5);
         _miscMenu.AddLabel("questLabel", label6);
         vector = new Vector(141.0, 74.0, 0.0);
+        // === Sense / examine popup ===
         _senseMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 360.0, 180.0, moveable: true);
         _senseMenu._background.Texture = _textureManager.Get("sense");
         _senseMenu._background.SetPosition(vector);
@@ -5842,6 +5877,7 @@ public class GameState : IGameObject
         _senseMenu.AddLabel("senseLabel", label61);
         _senseMenu.AddButton("quitSenseBtn", button74);
         vector = new Vector(141.0, 74.0, 0.0);
+        // === Sign popup ===
         _signMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 360.0, 180.0, moveable: true);
         _signMenu._background.Texture = _textureManager.Get("woodbk_F0_C0");
         _signMenu._background.SetPosition(vector);
@@ -5854,6 +5890,7 @@ public class GameState : IGameObject
         _signMenu.AddLabel("signLabel", label62);
         _signMenu.AddButton("quitSignBtn", button75);
         vector = new Vector(dDP.X, dDP.Y, 0.0);
+        // === Standard NPC dialog popup ===
         _standardDialogPopup = new ButtonMenu(_input, _font, vector.X, vector.Y, 454.0, 180.0, moveable: true);
         _standardDialogPopup._background.SetPosition(vector);
         Engine.Button button76 = new Engine.Button(_textureManager, 20.0, 143.0, 70.0, 22.0, "butt001_F9", "butt001_F10", "", "butt001_F11", null, null, 0, multHorzontal: false, vector.X, vector.Y);
@@ -5877,6 +5914,7 @@ public class GameState : IGameObject
         _standardDialogPopup.AddLabel("sdpNameLabel", label63);
         _standardDialogPopup.AddLabel("sdpBodyLabel", label64);
         vector = new Vector(100.0, 4.0, 0.0);
+        // === Commands-list window ===
         _commandMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 451.0, 418.0, moveable: true);
         _commandMenu._background.Texture = _textureManager.Get("legend_F0_C0");
         _commandMenu._background.SetPosition(vector);
@@ -5952,6 +5990,7 @@ public class GameState : IGameObject
         _commandMenu.AddLabel("commandNameLabel", label65);
         _commandMenu.AddButton("closeCommandMenuBtn", button80);
         vector = new Vector(100.0, 4.0, 0.0);
+        // === Keyboard-shortcuts list window ===
         _keyboardMenu = new ButtonMenu(_input, _font, vector.X, vector.Y, 451.0, 418.0, moveable: true);
         _keyboardMenu._background.Texture = _textureManager.Get("legend_F0_C0");
         _keyboardMenu._background.SetPosition(vector);
@@ -6026,6 +6065,7 @@ public class GameState : IGameObject
         _keyboardMenu.AddButton("keyboardScrollDownBtn", button87);
         _keyboardMenu.AddLabel("keyboardNameLabel", label66);
         _keyboardMenu.AddButton("closeKeyboardMenuBtn", button85);
+        // === Info bar (scrolling system messages) ===
         _infoBarMenu = new ButtonMenu(_input, _font, 88.0, 317.0, 443.0, 12.0);
         Engine.Button sysmsgBtn = new Engine.Button(_textureManager, 88.0, 317.0, 433.0, 12.0, "");
         Text label67 = DrawLabel("", Engine.Color.Orange, 94.0, 318.0, 420, "left");
@@ -6112,6 +6152,7 @@ public class GameState : IGameObject
         _infoBarMenu.AddLabel("sysmsg10", label76);
         _infoBarMenu.AddButton("sysmsgBtn", sysmsgBtn);
         vector = new Vector(190.0, 183.0, 0.0);
+        // === Group-request prompt ===
         _groupRequestPrompt = new ButtonMenu(_input, _font, vector.X, vector.Y, 263.0, 74.0, moveable: true);
         _groupRequestPrompt._sprite.Texture = _textureManager.Get("promptok");
         _groupRequestPrompt._sprite.SetPosition(vector);
@@ -6136,6 +6177,7 @@ public class GameState : IGameObject
         _groupRequestPrompt._labels.Add("groupPromptText", value3);
         _groupRequestPrompt._buttons.Add("groupPromptOkBtn", button90);
         _groupRequestPrompt._buttons.Add("groupPromptCloseBtn", button91);
+        // === Group-list window ===
         _groupListMenu = new ButtonMenu(_input, _font);
         _groupListMenu._background.Texture = _textureManager.Get("group1");
         _groupListMenu._background.SetPosition(0.0, 4.0);
