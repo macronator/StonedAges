@@ -1497,8 +1497,8 @@ public class GameState : IGameObject
                 if (!_viewingLegend && !_viewingProfile && !_viewingOthersLegend && !_viewingOthersProfile)
                 {
                     // --- Interactive world objects: doors (open/close + walls), chests, signs, boards ---
-                    IWO[] array14 = _map._iwos.ToArray();
-                    foreach (IWO iWO in array14)
+                    IWO[] iwos = _map._iwos.ToArray();
+                    foreach (IWO iWO in iwos)
                     {
                         if (!iWO._tile.Location.InView(_player._location) || !iWO.CollidesWith(position) || !(iWO._type != "Chest"))
                         {
@@ -1522,9 +1522,9 @@ public class GameState : IGameObject
                             int lwall = iWO._tile._wall._lwall;
                             if (list.Contains(rwall) || _textureManager.openDoors(rwall))
                             {
-                                int num = _textureManager.AltDoor(rwall);
-                                iWO._tile._wall._rwall = num;
-                                iWO._tile._wall._rightWall.Texture = _textureManager.Get("stc" + num.ToString("00000") + ".hpf_F0_C0", ".hpf");
+                                int altDoorTex = _textureManager.AltDoor(rwall);
+                                iWO._tile._wall._rwall = altDoorTex;
+                                iWO._tile._wall._rightWall.Texture = _textureManager.Get("stc" + altDoorTex.ToString("00000") + ".hpf_F0_C0", ".hpf");
                                 if (iWO._type == "DoorE")
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1]);
@@ -1546,10 +1546,10 @@ public class GameState : IGameObject
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1]);
                                     UpdateAltDoors(elapsedTime, _map._tiles[(iWO._location.Y + 1) * (int)_map._width + iWO._location.X]);
-                                    if (num == 924 || num == 921)
+                                    if (altDoorTex == 924 || altDoorTex == 921)
                                     {
-                                        Tile tile3 = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
-                                        tile3._wall.SetPosition(tile3._position.X, tile3._position.Y);
+                                        Tile doorTile = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
+                                        doorTile._wall.SetPosition(doorTile._position.X, doorTile._position.Y);
                                     }
                                 }
                                 else if (iWO._type == "DoorC")
@@ -1571,9 +1571,9 @@ public class GameState : IGameObject
                             }
                             if (list.Contains(lwall) || _textureManager.openDoors(lwall))
                             {
-                                int num2 = _textureManager.AltDoor(lwall);
-                                iWO._tile._wall._lwall = num2;
-                                iWO._tile._wall._leftWall.Texture = _textureManager.Get("stc" + num2.ToString("00000") + ".hpf_F0_C0", ".hpf");
+                                int altDoorTex = _textureManager.AltDoor(lwall);
+                                iWO._tile._wall._lwall = altDoorTex;
+                                iWO._tile._wall._leftWall.Texture = _textureManager.Get("stc" + altDoorTex.ToString("00000") + ".hpf_F0_C0", ".hpf");
                                 if (iWO._type == "DoorE")
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1]);
@@ -1595,10 +1595,10 @@ public class GameState : IGameObject
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1]);
                                     UpdateAltDoors(elapsedTime, _map._tiles[(iWO._location.Y + 1) * (int)_map._width + iWO._location.X]);
-                                    if (num2 == 924 || num2 == 921)
+                                    if (altDoorTex == 924 || altDoorTex == 921)
                                     {
-                                        Tile tile4 = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
-                                        tile4._wall.SetPosition(tile4._position.X, tile4._position.Y);
+                                        Tile doorTile = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
+                                        doorTile._wall.SetPosition(doorTile._position.X, doorTile._position.Y);
                                     }
                                 }
                                 else if (iWO._type == "DoorC")
@@ -1627,9 +1627,9 @@ public class GameState : IGameObject
                             int lwall2 = iWO._tile._wall._lwall;
                             if (list2.Contains(rwall2) || _textureManager.closedDoors(rwall2))
                             {
-                                int num3 = _textureManager.AltDoor(rwall2);
-                                iWO._tile._wall._rwall = num3;
-                                iWO._tile._wall._rightWall.Texture = _textureManager.Get("stc" + num3.ToString("00000") + ".hpf_F0_C0", ".hpf");
+                                int altDoorTex = _textureManager.AltDoor(rwall2);
+                                iWO._tile._wall._rwall = altDoorTex;
+                                iWO._tile._wall._rightWall.Texture = _textureManager.Get("stc" + altDoorTex.ToString("00000") + ".hpf_F0_C0", ".hpf");
                                 if (iWO._type == "DoorE")
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1], walkable: true);
@@ -1651,10 +1651,10 @@ public class GameState : IGameObject
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1], walkable: true);
                                     UpdateAltDoors(elapsedTime, _map._tiles[(iWO._location.Y + 1) * (int)_map._width + iWO._location.X], walkable: true);
-                                    if (num3 == 924 || num3 == 921)
+                                    if (altDoorTex == 924 || altDoorTex == 921)
                                     {
-                                        Tile tile5 = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
-                                        tile5._wall.SetPosition(tile5._position.X, tile5._position.Y);
+                                        Tile doorTile = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
+                                        doorTile._wall.SetPosition(doorTile._position.X, doorTile._position.Y);
                                     }
                                 }
                                 else if (iWO._type == "DoorC")
@@ -1676,9 +1676,9 @@ public class GameState : IGameObject
                             }
                             if (list2.Contains(lwall2) || _textureManager.closedDoors(lwall2))
                             {
-                                int num4 = _textureManager.AltDoor(lwall2);
-                                iWO._tile._wall._lwall = num4;
-                                iWO._tile._wall._leftWall.Texture = _textureManager.Get("stc" + num4.ToString("00000") + ".hpf_F0_C0", ".hpf");
+                                int altDoorTex = _textureManager.AltDoor(lwall2);
+                                iWO._tile._wall._lwall = altDoorTex;
+                                iWO._tile._wall._leftWall.Texture = _textureManager.Get("stc" + altDoorTex.ToString("00000") + ".hpf_F0_C0", ".hpf");
                                 if (iWO._type == "DoorE")
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1], walkable: true);
@@ -1700,10 +1700,10 @@ public class GameState : IGameObject
                                 {
                                     UpdateAltDoors(elapsedTime, _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X + 1], walkable: true);
                                     UpdateAltDoors(elapsedTime, _map._tiles[(iWO._location.Y + 1) * (int)_map._width + iWO._location.X], walkable: true);
-                                    if (num4 == 924 || num4 == 921)
+                                    if (altDoorTex == 924 || altDoorTex == 921)
                                     {
-                                        Tile tile6 = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
-                                        tile6._wall.SetPosition(tile6._position.X, tile6._position.Y);
+                                        Tile doorTile = _map._tiles[iWO._location.Y * (int)_map._width + iWO._location.X];
+                                        doorTile._wall.SetPosition(doorTile._position.X, doorTile._position.Y);
                                     }
                                 }
                                 else if (iWO._type == "DoorC")
@@ -1750,59 +1750,59 @@ public class GameState : IGameObject
                     }
                 }
                 // --- Hover/click entities: name tags, tooltips, targeting, cast, NPC dialog, profile ---
-                foreach (Entity item in from z in _map._entities.Values.ToArray()
+                foreach (Entity entity in from z in _map._entities.Values.ToArray()
                                         orderby z._tileTime
                                         select z)
                 {
-                    if (item._location.InView(_player._location) && item.CollidesWith(position))
+                    if (entity._location.InView(_player._location) && entity.CollidesWith(position))
                     {
-                        if (item is Item || (item._id != _player._id && item.Hidden))
+                        if (entity is Item || (entity._id != _player._id && entity.Hidden))
                         {
                             continue;
                         }
                         if (_input.Mouse.LeftDown)
                         {
-                            item._clicked = true;
+                            entity._clicked = true;
                         }
                         flag = true;
-                        if (item._id != _player._id)
+                        if (entity._id != _player._id)
                         {
-                            item._displayTag = 1;
+                            entity._displayTag = 1;
                         }
                         if (_loadedSpell != null && (_loadedSpell._targettype == "target" || _loadedSpell._targettype == "meall"))
                         {
-                            item._targeted = true;
+                            entity._targeted = true;
                         }
                         else
                         {
-                            item._targeted = false;
+                            entity._targeted = false;
                         }
                         _input.Mouse.SetCursorSelected();
-                        if (item is Monster && item._showInfo)
+                        if (entity is Monster && entity._showInfo)
                         {
-                            _tTT = "Name: " + item._name;
-                            _tTT = _tTT + "\nEXP:  " + item._exp.ToString("#,0");
-                            _tTT = _tTT + "\nHP:   " + item._curHP.ToString("#,0") + " / " + item._maxHP.ToString("#,0");
-                            _tTT = _tTT + "\nLev:  " + item._lev;
-                            _tTT = _tTT + "\nATTACK NATURE:  " + item._atk;
-                            _tTT = _tTT + "\nDEFENSE NATURE:  " + item._def;
+                            _tTT = "Name: " + entity._name;
+                            _tTT = _tTT + "\nEXP:  " + entity._exp.ToString("#,0");
+                            _tTT = _tTT + "\nHP:   " + entity._curHP.ToString("#,0") + " / " + entity._maxHP.ToString("#,0");
+                            _tTT = _tTT + "\nLev:  " + entity._lev;
+                            _tTT = _tTT + "\nATTACK NATURE:  " + entity._atk;
+                            _tTT = _tTT + "\nDEFENSE NATURE:  " + entity._def;
                             _toolTipText.ChangeText(_tTT);
                             UpdateToolTip(position);
                         }
-                        if (!_input.Mouse.DoubleRightPressed && _input.Mouse.RightPressed && debug && item._mBody != null)
+                        if (!_input.Mouse.DoubleRightPressed && _input.Mouse.RightPressed && debug && entity._mBody != null)
                         {
-                            _eTT = "Image: " + item._mBody._mImage.Name;
-                            _eTT = _eTT + "\nWalk Start: " + item._mBody._mImage.WalkStart;
-                            _eTT = _eTT + "\nWalk Length: " + item._mBody._mImage.WalkLength;
-                            _eTT = _eTT + "\nIdle Start: " + item._mBody._mImage.IdleStart;
-                            _eTT = _eTT + "\nIdle Length: " + item._mBody._mImage.IdleLength;
-                            _eTT = _eTT + "\nIdle2 Length: " + item._mBody._mImage.Idle2Length;
-                            _eTT = _eTT + "\nAttack1 Start: " + item._mBody._mImage.Attack1Start;
-                            _eTT = _eTT + "\nAttack1 Length: " + item._mBody._mImage.Attack1Length;
-                            _eTT = _eTT + "\nAttack2 Start: " + item._mBody._mImage.Attack2Start;
-                            _eTT = _eTT + "\nAttack2 Length: " + item._mBody._mImage.Attack2Length;
-                            _eTT = _eTT + "\nAttack3 Start: " + item._mBody._mImage.Attack3Start;
-                            _eTT = _eTT + "\nAttack3 Length: " + item._mBody._mImage.Attack3Length;
+                            _eTT = "Image: " + entity._mBody._mImage.Name;
+                            _eTT = _eTT + "\nWalk Start: " + entity._mBody._mImage.WalkStart;
+                            _eTT = _eTT + "\nWalk Length: " + entity._mBody._mImage.WalkLength;
+                            _eTT = _eTT + "\nIdle Start: " + entity._mBody._mImage.IdleStart;
+                            _eTT = _eTT + "\nIdle Length: " + entity._mBody._mImage.IdleLength;
+                            _eTT = _eTT + "\nIdle2 Length: " + entity._mBody._mImage.Idle2Length;
+                            _eTT = _eTT + "\nAttack1 Start: " + entity._mBody._mImage.Attack1Start;
+                            _eTT = _eTT + "\nAttack1 Length: " + entity._mBody._mImage.Attack1Length;
+                            _eTT = _eTT + "\nAttack2 Start: " + entity._mBody._mImage.Attack2Start;
+                            _eTT = _eTT + "\nAttack2 Length: " + entity._mBody._mImage.Attack2Length;
+                            _eTT = _eTT + "\nAttack3 Start: " + entity._mBody._mImage.Attack3Start;
+                            _eTT = _eTT + "\nAttack3 Length: " + entity._mBody._mImage.Attack3Length;
                             _entityToolTip.ChangeText(_eTT);
                             UpdateEntityToolTip(position);
                         }
@@ -1812,63 +1812,63 @@ public class GameState : IGameObject
                         }
                         if (_loadedSpell != null && (_loadedSpell._targettype == "target" || _loadedSpell._targettype == "meall"))
                         {
-                            CastLoadedSpellOnTarget(item);
+                            CastLoadedSpellOnTarget(entity);
                         }
-                        else if (item is Monster)
+                        else if (entity is Monster)
                         {
-                            SystemMsg(item._name, 3);
+                            SystemMsg(entity._name, 3);
                         }
-                        else if (item is NPC && item._clicked && !item.Hidden)
+                        else if (entity is NPC && entity._clicked && !entity.Hidden)
                         {
-                            DialogPopup(item, item._name, 0, item._mBody._imgArr[item._mBody._face - 1]);
+                            DialogPopup(entity, entity._name, 0, entity._mBody._imgArr[entity._mBody._face - 1]);
                         }
-                        else if (item is Player && _input.Keyboard.IsKeyPressedOrHeld(Keys.ControlKey) && !_viewingProfile && !_viewingOthersProfile)
+                        else if (entity is Player && _input.Keyboard.IsKeyPressedOrHeld(Keys.ControlKey) && !_viewingProfile && !_viewingOthersProfile)
                         {
-                            if (item._id == _player._id)
+                            if (entity._id == _player._id)
                             {
                                 _viewingProfile = true;
                             }
-                            else if (!item.Hidden)
+                            else if (!entity.Hidden)
                             {
-                                RequestProfilePacket requestProfilePacket = new RequestProfilePacket(item._id);
+                                RequestProfilePacket requestProfilePacket = new RequestProfilePacket(entity._id);
                                 GameWindow.ClientSocket.Send(requestProfilePacket.Data);
                                 _viewingOthersProfile = true;
                             }
                         }
-                        item._clicked = false;
+                        entity._clicked = false;
                     }
                     else
                     {
-                        if (item._displayTag == 1)
+                        if (entity._displayTag == 1)
                         {
-                            item._displayTag = 0;
+                            entity._displayTag = 0;
                         }
-                        if (item._targeted)
+                        if (entity._targeted)
                         {
-                            item._targeted = false;
+                            entity._targeted = false;
                         }
                     }
                 }
                 if (_viewingProfile)
                 {
-                    foreach (InventoryItem item2 in _equipment)
+                    foreach (InventoryItem equipItem in _equipment)
                     {
-                        if (item2.CollidesWith(position))
+                        if (equipItem.CollidesWith(position))
                         {
                             flag = true;
-                            ItemToolTip(item2, position);
+                            ItemToolTip(equipItem, position);
                             break;
                         }
                     }
                 }
                 if (_viewingOthersProfile && _profilePlayer != null)
                 {
-                    foreach (Equipment item3 in _profilePlayer._equipment)
+                    foreach (Equipment profileEquipItem in _profilePlayer._equipment)
                     {
-                        if (item3.CollidesWith(position))
+                        if (profileEquipItem.CollidesWith(position))
                         {
                             flag = true;
-                            ItemToolTip(item3, position);
+                            ItemToolTip(profileEquipItem, position);
                             break;
                         }
                     }
