@@ -14070,6 +14070,14 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>
+    ///     The shared spell/skill script executor (the overload all the Scripts(...) calls route through).
+    ///     After the dead/ghost check it maps <paramref name="scriptType"/> to a body-animation set and
+    ///     delay, then - per <paramref name="skillSpellAction"/> - looks <paramref name="script"/> up in
+    ///     _spellsDB (2 = spell) or _skillsDB (1 = skill), reads its data, and applies it: the body/sound/cast
+    ///     animations, the spell-bar status, and damage, dispatched by the script's target type (self / gar /
+    ///     lamh / tile / target). Honors the checkSpellBar / checkHidden / castMsg / allowRefresh flags.
+    /// </summary>
     private void UseScript(string script, string scriptType, bool checkSpellBar = false, bool checkHidden = true, bool castMsg = false, byte skillSpellAction = 2, bool allowRefresh = false)
     {
         if (_player._dead)
@@ -14085,6 +14093,7 @@ public class GameState : IGameObject
         string text = "";
         byte aniType = 0;
         int num = 0;
+        // Map the requested script type to its body-animation set (aniType) + delay.
         switch (scriptType)
         {
             case "cast":
@@ -14300,8 +14309,10 @@ public class GameState : IGameObject
             SendDisplayPlayer();
         }
         bool flag = false;
+        // Look the named script up in the data DB and apply it (2 = spell -> _spellsDB, 1 = skill -> _skillsDB).
         switch (skillSpellAction)
         {
+            // Spell: find <script> in _spellsDB, read its fields, then dispatch by target type (self/gar/lamh/tile/target).
             case 2:
                 foreach (JToken item in _spellsDB["spells"].Children())
                 {
@@ -14483,6 +14494,7 @@ public class GameState : IGameObject
                     return;
                 }
                 break;
+            // Skill: find <script> in _skillsDB and apply (same shape as the spell case).
             case 1:
                 foreach (JToken item2 in _skillsDB["skills"].Children())
                 {
