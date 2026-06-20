@@ -12824,6 +12824,14 @@ public class GameState : IGameObject
         }
     }
 
+    /// <summary>
+    ///     Executes skill <paramref name="s"/>. After the rate-limit, cooldown, dead/ghost, mana and
+    ///     stealth checks, it dispatches by skill name - assail (melee in front), ambush (teleport behind a
+    ///     lined-up target), transfer blood, charge / flying kick, disengage, throw, wolf fang fist / poison
+    ///     punch - or by target type (projectile / facing / line / lamh / gar / self), applying the movement,
+    ///     animation, status and damage. On success it shows the cast message, counts the use toward
+    ///     leveling, and starts the cooldown. The // === ... === markers below delimit each handler.
+    /// </summary>
     private void UseScript(Skill s)
     {
         if (DateTime.UtcNow.Subtract(s._lastUse).TotalMilliseconds < 333.0)
@@ -12878,6 +12886,7 @@ public class GameState : IGameObject
             _player.Hidden = false;
             SendDisplayPlayer();
         }
+        // === Skill: assail (melee the tile in front; STR-based damage) ===
         if (s._name.Equals("assail", StringComparison.CurrentCultureIgnoreCase))
         {
             SoundBodyFromAni(s);
@@ -12914,6 +12923,7 @@ public class GameState : IGameObject
         }
         else if (!s._name.Equals("wield staff", StringComparison.CurrentCultureIgnoreCase) && !s._name.Equals("wield two-handed", StringComparison.CurrentCultureIgnoreCase))
         {
+            // === Skill: ambush (teleport behind a lined-up target) ===
             if (s._name.Equals("ambush", StringComparison.CurrentCultureIgnoreCase))
             {
                 bool flag2 = false;
@@ -13137,6 +13147,7 @@ public class GameState : IGameObject
                     break;
                 }
             }
+            // === Skill: transfer blood ===
             else if (s._name.Equals("transfer blood", StringComparison.CurrentCultureIgnoreCase))
             {
                 Tile tile4 = TileImFacing();
@@ -13163,6 +13174,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Skill: charge / flying kick ===
             else if (s._name.Equals("charge", StringComparison.CurrentCultureIgnoreCase) || s._name.Equals("flying kick", StringComparison.CurrentCultureIgnoreCase))
             {
                 Tile tile5 = TileImFacing();
@@ -13204,6 +13216,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Skill: disengage ===
             else if (s._name.Equals("disengage", StringComparison.CurrentCultureIgnoreCase))
             {
                 Tile tile6 = TileImFacing();
@@ -13251,6 +13264,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Skill: throw ===
             else if (s._name.Equals("throw", StringComparison.CurrentCultureIgnoreCase))
             {
                 bool flag7 = false;
@@ -13281,12 +13295,14 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Target type: projectile ===
             else if (s._targettype == "projectile")
             {
                 flag = true;
                 SoundBodyFromAni(s);
                 SpawnProjectile(_player, s._projType, s._dmg);
             }
+            // === Target type: facing (the tile in front) ===
             else if (s._targettype == "facing")
             {
                 Tile tile8 = TileImFacing();
@@ -13311,6 +13327,7 @@ public class GameState : IGameObject
                             SpellBarCheck(s, entity7);
                             int num3 = weaponDmg;
                             int dmg2 = s._dmg + _player._dmg * 5 + num3;
+                            // === Skill: wolf fang fist / poison punch ===
                             if (s._name.Equals("wolf fang fist", StringComparison.CurrentCultureIgnoreCase) || s._name.Equals("poison punch", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 dmg2 = (int)((double)(int)_player._str * 0.9 * 6.0) + _player._dmg * 5 + num3;
@@ -13320,6 +13337,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Target type: line ===
             else if (s._targettype == "line")
             {
                 bool flag9 = false;
@@ -13343,6 +13361,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Target type: lamh (radius) ===
             else if (s._targettype == "lamh")
             {
                 bool flag10 = false;
@@ -13366,6 +13385,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Target type: gar (AoE radius) ===
             else if (s._targettype == "gar")
             {
                 bool flag11 = false;
@@ -13389,6 +13409,7 @@ public class GameState : IGameObject
                     }
                 }
             }
+            // === Target type: self ===
             else if (s._targettype == "self" && (!s._checkSpellBar || !_player._spellBar.ContainsKey(s._name)))
             {
                 flag = true;
