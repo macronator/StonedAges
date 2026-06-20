@@ -27,7 +27,13 @@ public class ClientSocket
     {
         try
         {
-            _socket.BeginConnect(new IPEndPoint(Dns.GetHostEntry(ipAddress).AddressList[0], port), ConnectCallback, null);
+            // Accept either a literal IP (e.g. 127.0.0.1) or a hostname (resolved via DNS).
+            IPAddress address;
+            if (!IPAddress.TryParse(ipAddress, out address))
+            {
+                address = Dns.GetHostEntry(ipAddress).AddressList[0];
+            }
+            _socket.BeginConnect(new IPEndPoint(address, port), ConnectCallback, null);
         }
         catch
         {

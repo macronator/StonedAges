@@ -178,9 +178,46 @@ public class GameWindow : Form
         Environment.Exit(1);
     }
 
+    /// <summary>
+    ///     Connects to the game server. Host/port are read from a <c>server.cfg</c> file next to the
+    ///     executable — one line, <c>host</c> or <c>host:port</c> (<c>#</c> comments and blank lines are
+    ///     ignored). If the file is missing or unparseable, the built-in default is used.
+    /// </summary>
     private void ServerConnect()
     {
-        ClientSocket.Connect("stonedages.ddns.net", _port);
+        string host = "stonedages.ddns.net";
+        int port = _port;
+        try
+        {
+            if (File.Exists("server.cfg"))
+            {
+                foreach (string rawLine in File.ReadAllLines("server.cfg"))
+                {
+                    string line = rawLine.Trim();
+                    if (line.Length == 0 || line.StartsWith("#"))
+                    {
+                        continue;
+                    }
+                    int colon = line.LastIndexOf(':');
+                    if (colon > 0 && int.TryParse(line.Substring(colon + 1), out int parsedPort))
+                    {
+                        host = line.Substring(0, colon);
+                        port = parsedPort;
+                    }
+                    else
+                    {
+                        host = line;
+                    }
+                    break;
+                }
+            }
+        }
+        catch
+        {
+            // any read/parse error: keep the built-in default
+        }
+        _port = port;
+        ClientSocket.Connect(host, port);
     }
 
     #endregion

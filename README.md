@@ -37,8 +37,10 @@ Place the following next to the built `Stoned Ages.exe`:
 - Native runtime libraries: `SDL.dll`, `OpenAL32.dll`, `alut.dll`, and irrKlang's native DLLs
 - `font.fnt`, `font_0.png`, `vers.xml`
 
-> The client connects to a game server in `ServerConnect()`; the original server is offline. Point it
-> at your own server to play online, or run it locally as far as your data allows.
+> **Server address.** The client reads the server from a `server.cfg` file next to the executable — one
+> line, `host` or `host:port` (e.g. `127.0.0.1:4020`); `#` comments and blank lines are ignored. If it's
+> absent, the built-in default is used. The original server is offline, so point this at your own
+> compatible server.
 
 ## Project layout
 
