@@ -38,8 +38,8 @@ The lower layer — everything that isn't game-specific rules.
 - **`Font` / `TextField`** — text rendering and editable text fields.
 - **`Tileset` / `DAGraphics` / `Renderer`** — tile/sprite composition and the GL draw helpers.
 
-If you want to **understand the data formats**, the readers here are the authoritative spec — they're worth
-documenting (see CONTRIBUTING → "Where to start").
+See **[`FORMATS.md`](FORMATS.md)** for the binary layouts (DAT archive, EPF/HPF/MPF sprites, palettes, maps),
+documented from these readers.
 
 ---
 
