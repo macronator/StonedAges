@@ -92,8 +92,8 @@ dispatch** (which byte selects which `…P` handler) lives in the socket read lo
 real opcode reference. `ServerConnect()` holds the server address (the original server is offline; point it at
 your own).
 
-> Documenting this protocol into an opcode table is one of the most valuable contributions on the roadmap —
-> it's what lets someone build a compatible server.
+> See **[`PROTOCOL.md`](PROTOCOL.md)** for the framing, the incoming opcode table, the handshake, the string
+> encoding, and how to find each outgoing opcode — the basis for building a compatible server.
 
 ---
 
