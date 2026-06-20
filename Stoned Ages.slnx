@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/StonedAges/">
+    <Project Path="StonedAges/Stoned Ages.csproj" />
+  </Folder>
+  <Project Path="Engine/Engine.csproj" />
+</Solution>

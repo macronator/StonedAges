@@ -1,0 +1,31 @@
+# ---- build output ----
+[Bb]in/
+[Oo]bj/
+
+# ---- Visual Studio / IDEs ----
+.vs/
+*.user
+*.suo
+.idea/
+
+# ---- proprietary dependency: users download irrKlang themselves (see README) ----
+lib/irrKlang.NET4.dll
+
+# ---- never commit game data, saves, or runtime binaries ----
+dats/
+maps/
+music/
+jsons/
+Images/
+screenshots/
+players/
+*.dat
+*.map
+*.ogg
+*.mus
+*.pdb
+Warning.txt
+vers.xml
+
+# internal working log (not part of the client source)
+CLAUDE.md
