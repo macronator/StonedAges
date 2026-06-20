@@ -18304,19 +18304,26 @@ public class GameState : IGameObject
     ///     command (/commands, /debug, /maps, /reset, /gender, /create, /spawn, /gm, /title, /script, /port,
     ///     /where, /m, …); otherwise the line is sent to the server as normal chat.
     /// </summary>
+    /// <summary>
+    ///     Handles a line the player typed, routing it by the channel prefix the chat box prepended:
+    ///     "name: " = say, "name! " = shout, and "!"/"!!"/"!!!" = guild/group/world. A say that begins
+    ///     with "/" is instead treated as a slash command and dispatched to the matching (mostly
+    ///     debug/developer) handler. Regular chat is sent to the server, or shown locally when offline.
+    /// </summary>
     private void ChatMsg(string msg)
     {
         byte b = 0;
         if (msg.StartsWith(_player._name + ": ", StringComparison.CurrentCultureIgnoreCase))
         {
-            string text = msg.Remove(0, msg.IndexOf(": ") + 2);
-            if (text.StartsWith("/"))
+            string message = msg.Remove(0, msg.IndexOf(": ") + 2);
+            // === Slash commands (mostly debug / dev tools): /create, /spawn, /port, /reset, /gm, ... ===
+            if (message.StartsWith("/"))
             {
-                if (text.StartsWith("/commands"))
+                if (message.StartsWith("/commands"))
                 {
                     _viewCommands = true;
                 }
-                else if (text.Equals("/debug"))
+                else if (message.Equals("/debug"))
                 {
                     if (debug)
                     {
@@ -18329,7 +18336,7 @@ public class GameState : IGameObject
                         debug = true;
                     }
                 }
-                else if (text.StartsWith("/maps"))
+                else if (message.StartsWith("/maps"))
                 {
                     StreamWriter streamWriter = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\mapnames.txt");
                     foreach (JToken item in from x in _mapsDB["maps"].Children()
@@ -18344,11 +18351,11 @@ public class GameState : IGameObject
                 }
                 else
                 {
-                    if (text.StartsWith("/map") || text.StartsWith("/wipe"))
+                    if (message.StartsWith("/map") || message.StartsWith("/wipe"))
                     {
                         return;
                     }
-                    if (text.Equals("/reset"))
+                    if (message.Equals("/reset"))
                     {
                         _player._lev = 1;
                         _player._exp = 1u;
@@ -18381,18 +18388,18 @@ public class GameState : IGameObject
                         WritePlayerData();
                         return;
                     }
-                    if (text.StartsWith("/gender"))
+                    if (message.StartsWith("/gender"))
                     {
                         _player.GenderSwap();
                         SaveProfile();
                         SendDisplayPlayer();
                         return;
                     }
-                    if (text.StartsWith("/spellani"))
+                    if (message.StartsWith("/spellani"))
                     {
                         try
                         {
-                            _debugSpellAni = int.Parse(text.Remove(0, 9).Trim());
+                            _debugSpellAni = int.Parse(message.Remove(0, 9).Trim());
                             return;
                         }
                         catch
@@ -18401,25 +18408,25 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/m"))
+                    if (message.StartsWith("/m"))
                     {
                         try
                         {
                             _debugMonSource = "old";
-                            if (text.Contains("new"))
+                            if (message.Contains("new"))
                             {
                                 _debugMonSource = "new";
-                                text = text.Remove(text.IndexOf("new"));
+                                message = message.Remove(message.IndexOf("new"));
                             }
-                            else if (text.Contains("myda"))
+                            else if (message.Contains("myda"))
                             {
                                 _debugMonSource = "myda";
-                                text = text.Remove(text.IndexOf("myda"));
+                                message = message.Remove(message.IndexOf("myda"));
                             }
                             int debugMonImg = 1;
-                            if (text.Length > 2)
+                            if (message.Length > 2)
                             {
-                                debugMonImg = int.Parse(text.Remove(0, 2).Trim());
+                                debugMonImg = int.Parse(message.Remove(0, 2).Trim());
                             }
                             _debugMonImg = debugMonImg;
                             _player.MonsterForm(_debugMonImg, _debugMonSource);
@@ -18431,11 +18438,11 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/title"))
+                    if (message.StartsWith("/title"))
                     {
-                        if (text.Length > 6)
+                        if (message.Length > 6)
                         {
-                            _player._title = text.Substring(7);
+                            _player._title = message.Substring(7);
                         }
                         else
                         {
@@ -18444,9 +18451,9 @@ public class GameState : IGameObject
                         SaveProfile();
                         return;
                     }
-                    if (text.StartsWith("/where"))
+                    if (message.StartsWith("/where"))
                     {
-                        string[] source = text.Split(' ');
+                        string[] source = message.Split(' ');
                         string text3 = source.Last();
                         if (text3.EndsWith("?"))
                         {
@@ -18456,16 +18463,16 @@ public class GameState : IGameObject
                         GameWindow.ClientSocket.Send(requestEntityMapInfoPacket.Data);
                         return;
                     }
-                    if (text.StartsWith("/port"))
+                    if (message.StartsWith("/port"))
                     {
-                        string[] array = text.Split(' ');
+                        string[] array = message.Split(' ');
                         int num2 = 0;
                         int num3 = 0;
                         if (int.TryParse(array[1], out var result))
                         {
                             try
                             {
-                                if (text.Contains(','))
+                                if (message.Contains(','))
                                 {
                                     string[] array2 = array[2].Split(',');
                                     num2 = int.Parse(array2[0]);
@@ -18489,7 +18496,7 @@ public class GameState : IGameObject
                         SystemMsg("Porting to player is currently not supported.", 3);
                         return;
                     }
-                    if (text.StartsWith("/bloody"))
+                    if (message.StartsWith("/bloody"))
                     {
                         if (!_player._body._bloody)
                         {
@@ -18502,12 +18509,12 @@ public class GameState : IGameObject
                         SendDisplayPlayer();
                         return;
                     }
-                    if (text.StartsWith("/create item"))
+                    if (message.StartsWith("/create item"))
                     {
                         try
                         {
                             int result2 = 1;
-                            string text4 = text.Remove(0, 13);
+                            string text4 = message.Remove(0, 13);
                             string text5 = "";
                             string text6 = "";
                             string text7 = "";
@@ -18552,11 +18559,11 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/create skill"))
+                    if (message.StartsWith("/create skill"))
                     {
                         try
                         {
-                            string text9 = text.Remove(0, 14);
+                            string text9 = message.Remove(0, 14);
                             if (!NewSkill(text9, 0, 0))
                             {
                                 SystemMsg("Skill " + text9 + " - not found in database.", 3);
@@ -18573,11 +18580,11 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/create spell"))
+                    if (message.StartsWith("/create spell"))
                     {
                         try
                         {
-                            string text10 = text.Remove(0, 14);
+                            string text10 = message.Remove(0, 14);
                             if (!NewSpell(text10, 0, 0))
                             {
                                 SystemMsg("Spell: " + text10 + " - not found in database.", 3);
@@ -18594,11 +18601,11 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/create action"))
+                    if (message.StartsWith("/create action"))
                     {
                         try
                         {
-                            string text11 = text.Remove(0, 15);
+                            string text11 = message.Remove(0, 15);
                             if (!NewAction(text11, 0, 0))
                             {
                                 SystemMsg("Action: " + text11 + " - not found in database.", 3);
@@ -18615,48 +18622,48 @@ public class GameState : IGameObject
                             return;
                         }
                     }
-                    if (text.StartsWith("/spawn npc new"))
+                    if (message.StartsWith("/spawn npc new"))
                     {
-                        string[] source2 = text.Split();
+                        string[] source2 = message.Split();
                         if (int.TryParse(source2.Last(), out var result3))
                         {
                             SpawnNpc(result3, new Location(_player._location.X, _player._location.Y), useNew: true);
                         }
                     }
-                    else if (text.StartsWith("/spawn npc"))
+                    else if (message.StartsWith("/spawn npc"))
                     {
-                        string[] source3 = text.Split();
+                        string[] source3 = message.Split();
                         if (int.TryParse(source3.Last(), out var result4))
                         {
                             SpawnNpc(result4, new Location(_player._location.X, _player._location.Y));
                         }
                     }
-                    else if (text.StartsWith("/spawn monster new"))
+                    else if (message.StartsWith("/spawn monster new"))
                     {
-                        string[] source4 = text.Split();
+                        string[] source4 = message.Split();
                         SpawnMonster(source4.Last(), new Location(_player._location.X, _player._location.Y), "new", 1);
                     }
-                    else if (text.StartsWith("/spawn monster myda"))
+                    else if (message.StartsWith("/spawn monster myda"))
                     {
-                        string[] source5 = text.Split();
+                        string[] source5 = message.Split();
                         SpawnMonster(source5.Last(), new Location(_player._location.X, _player._location.Y), "myda", 1);
                     }
-                    else if (text.StartsWith("/spawn monster"))
+                    else if (message.StartsWith("/spawn monster"))
                     {
-                        string[] source6 = text.Split();
+                        string[] source6 = message.Split();
                         SpawnMonster(source6.Last(), new Location(_player._location.X, _player._location.Y), "old", 1);
                     }
-                    else if (text.StartsWith("/spawn item"))
+                    else if (message.StartsWith("/spawn item"))
                     {
-                        SpawnItem(text.Remove(0, 12), new Location(_player._location.X, _player._location.Y));
+                        SpawnItem(message.Remove(0, 12), new Location(_player._location.X, _player._location.Y));
                     }
-                    else if (text.StartsWith("/script"))
+                    else if (message.StartsWith("/script"))
                     {
-                        Scripts(text.Remove(0, 8));
+                        Scripts(message.Remove(0, 8));
                     }
                     else
                     {
-                        if (!text.StartsWith("/gm"))
+                        if (!message.StartsWith("/gm"))
                         {
                             return;
                         }
@@ -18693,6 +18700,7 @@ public class GameState : IGameObject
                 DisplayChat(b, _player._id, msg);
             }
         }
+        // === Shout channel ("name! message") ===
         else if (msg.StartsWith(_player._name + "! ", StringComparison.CurrentCultureIgnoreCase))
         {
             b = 1;
@@ -18708,21 +18716,22 @@ public class GameState : IGameObject
         }
         else
         {
-            string text12 = msg.Substring(3, msg.IndexOf(": ") - 3);
-            string text13 = msg.Substring(msg.IndexOf(": ") + 2);
-            switch (text12)
+            // === Guild (!), group (!!), world (!!!) channels ===
+            string channelPrefix = msg.Substring(3, msg.IndexOf(": ") - 3);
+            string channelBody = msg.Substring(msg.IndexOf(": ") + 2);
+            switch (channelPrefix)
             {
                 case "!":
                     b = 12;
-                    msg = "<!" + _player._name + "> " + text13;
+                    msg = "<!" + _player._name + "> " + channelBody;
                     break;
                 case "!!":
                     b = 4;
-                    msg = "[!" + _player._name + "] " + text13;
+                    msg = "[!" + _player._name + "] " + channelBody;
                     break;
                 case "!!!":
                     b = 2;
-                    msg = "[" + _player._name + "]: " + text13;
+                    msg = "[" + _player._name + "]: " + channelBody;
                     break;
             }
             if (GameWindow.ConnectedToServer)
