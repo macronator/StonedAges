@@ -1889,10 +1889,18 @@ public class GameState : IGameObject
         UpdateInput(elapsedTime);
     }
 
+    /// <summary>
+    ///     Processes keyboard input each frame. First the always-on keys: Escape (close), Return/Space
+    ///     (send chat / advance dialog), the arrow keys (facing), and whisper/shout entry. While the player
+    ///     is typing (chat mode or a number-entry prompt) it returns here; otherwise it handles the in-world
+    ///     hotkeys: function keys (F1-F12), letter hotkeys (bag, panels, group, scrolling), and the
+    ///     spell/skill hotbar (number keys modified by Ctrl/Alt), plus held-key actions and list navigation.
+    /// </summary>
     private void UpdateInput(double elapsedTime)
     {
         Engine.Point mp = _input.Mouse.Position;
         EscapeHotkey();
+        // === Chat / dialog confirm (Return, Space), facing (arrows), whisper & shout entry ===
         if (_input.Keyboard.IsKeyPressed(Keys.Return))
         {
             if (_viewingSense)
@@ -2083,10 +2091,12 @@ public class GameState : IGameObject
                 }
             }
         }
+        // === Past this gate: in-world hotkeys (skipped while typing in chat or a number-entry prompt) ===
         if (_chatMode || _userMsgPrompt)
         {
             return;
         }
+        // === Function keys: F1 create-NPC dialog, F3 world map, F4 settings, F5 recall, F12 screenshot ===
         if (_input.Keyboard.IsKeyPressed(Keys.F1))
         {
             foreach (Entity value in _map._entities.Values)
@@ -2144,6 +2154,7 @@ public class GameState : IGameObject
         }
         if (!_viewingStuff())
         {
+            // === Letter hotkeys: bag, panel toggles, group, Tab, page scrolling, examine ===
             if (_input.Keyboard.IsKeyPressed(Keys.B))
             {
                 bool flag = false;
@@ -2355,6 +2366,7 @@ public class GameState : IGameObject
                     _miscMenu._buttons["fullInvBtn"].Selected = false;
                 }
             }
+            // === Spell/skill hotbar: number keys cast/use a slot; Ctrl/Alt select the hotbar row ===
             if (_input.Keyboard.IsKeyPressedOrHeld(Keys.ControlKey) && _input.Keyboard.IsKeyPressedOrHeld(Keys.LMenu))
             {
                 if (_input.Keyboard.IsKeyPressedAndRepeated(Keys.NumPad1) || _input.Keyboard.IsKeyPressedAndRepeated(Keys.D1))
@@ -3359,6 +3371,7 @@ public class GameState : IGameObject
                 }
             }
         }
+        // === Held-key actions (assail on Space) + arrow/Return navigation in open lists & dialogs ===
         if (_input.Keyboard.IsKeyPressedOrHeld(Keys.Space))
         {
             Assail();
